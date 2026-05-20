@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
-from typing import Optional
+from sqlalchemy import func, desc, or_, text
+from typing import Optional, List
 from datetime import datetime, timedelta, timezone
 
 from app.database import get_db
@@ -45,10 +45,22 @@ def delete_movie(movie_id: int, db: Session = Depends(get_db)):
     db.commit()
 
 
+@router.get("/genres", response_model=list[str])
+def get_genres(db: Session = Depends(get_db)):
+    rows = db.execute(text("SELECT DISTINCT unnest(genres) AS g FROM movies WHERE genres IS NOT NULL ORDER BY g")).fetchall()
+    return [r[0] for r in rows if r[0]]
+
+
+@router.get("/languages", response_model=list[str])
+def get_languages(db: Session = Depends(get_db)):
+    rows = db.query(Movie.language).distinct().filter(Movie.language.isnot(None)).order_by(Movie.language).all()
+    return [r[0] for r in rows if r[0]]
+
+
 @router.get("/search", response_model=list[MovieResponse])
 def search_movies(
     title: Optional[str] = Query(None),
-    genre: Optional[str] = Query(None),
+    genre: Optional[List[str]] = Query(None),
     year_min: Optional[int] = Query(None),
     year_max: Optional[int] = Query(None),
     min_rating: Optional[float] = Query(None),
@@ -62,7 +74,7 @@ def search_movies(
     if title:
         query = query.filter(Movie.title.ilike(f"%{title}%"))
     if genre:
-        query = query.filter(Movie.genres.any(genre))
+        query = query.filter(or_(*[Movie.genres.any(g) for g in genre]))
     if year_min:
         query = query.filter(Movie.release_year >= year_min)
     if year_max:

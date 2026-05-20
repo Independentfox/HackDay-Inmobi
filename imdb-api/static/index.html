@@ -74,8 +74,16 @@
       <div class="search-filters card">
         <div class="filter-row">
           <input id="filterTitle" type="text" placeholder="Movie title..." class="filter-input" />
-          <input id="filterGenre" type="text" placeholder="Genre (Action, Drama...)" class="filter-input" />
-          <input id="filterLang" type="text" placeholder="Language" class="filter-input" />
+          <div class="genre-filter-wrapper">
+            <div id="genreChips" class="genre-chips-container"></div>
+            <div class="autocomplete-wrapper" style="flex:1">
+              <input id="filterGenre" type="text" placeholder="Add genre (max 3)..." class="filter-input" autocomplete="off" />
+              <div id="filterGenre-dropdown" class="autocomplete-dropdown hidden"></div>
+            </div>
+          </div>
+          <select id="filterLang" class="filter-input">
+            <option value="">All Languages</option>
+          </select>
         </div>
         <div class="filter-row">
           <input id="filterYearMin" type="number" placeholder="Year from" class="filter-input" min="1900" max="2030" />

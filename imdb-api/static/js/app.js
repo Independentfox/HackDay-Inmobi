@@ -6,6 +6,9 @@ const API = '';  // same origin
 let currentUser = null;
 let currentMovieId = null;
 let selectedStarRating = 0;
+let selectedGenres = [];
+let allGenres = [];
+let searchOptionsLoaded = false;
 
 // ---- INIT ----
 document.addEventListener('DOMContentLoaded', async () => {
@@ -99,6 +102,7 @@ function _switchPage(name) {
   if (name === 'stats') loadStats();
   if (name === 'people') searchPeople();
   if (name === 'user-dashboard') loadUserDashboard();
+  if (name === 'search') loadSearchFilterOptions();
 }
 
 function showPage(name) {
@@ -363,16 +367,15 @@ function heroSearchGo() {
 
 async function doSearch() {
   const title = document.getElementById('filterTitle').value.trim();
-  const genre = document.getElementById('filterGenre').value.trim();
   const yearMin = document.getElementById('filterYearMin').value;
   const yearMax = document.getElementById('filterYearMax').value;
   const minRating = document.getElementById('filterMinRating').value;
   const cert = document.getElementById('filterCert').value;
-  const lang = document.getElementById('filterLang').value.trim();
+  const lang = document.getElementById('filterLang').value;
 
   const params = new URLSearchParams();
   if (title) params.append('title', title);
-  if (genre) params.append('genre', genre);
+  selectedGenres.forEach(g => params.append('genre', g));
   if (yearMin) params.append('year_min', yearMin);
   if (yearMax) params.append('year_max', yearMax);
   if (minRating) params.append('min_rating', minRating);
@@ -398,12 +401,83 @@ async function doSearch() {
 }
 
 function clearSearch() {
-  ['filterTitle','filterGenre','filterLang','filterYearMin','filterYearMax','filterMinRating'].forEach(id => {
+  ['filterTitle','filterYearMin','filterYearMax','filterMinRating'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('filterCert').value = '';
+  document.getElementById('filterLang').value = '';
+  document.getElementById('filterGenre').value = '';
+  document.getElementById('filterGenre').disabled = false;
+  selectedGenres = [];
+  renderGenreChips();
   document.getElementById('searchResults').innerHTML = '';
   document.getElementById('searchEmpty').classList.add('hidden');
+}
+
+// ---- GENRE / LANGUAGE FILTER ----
+async function loadSearchFilterOptions() {
+  if (searchOptionsLoaded) return;
+  searchOptionsLoaded = true;
+  try {
+    const [genres, languages] = await Promise.all([
+      apiFetch('/api/movies/genres'),
+      apiFetch('/api/movies/languages')
+    ]);
+    allGenres = genres;
+    const langSel = document.getElementById('filterLang');
+    languages.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l; opt.textContent = l;
+      langSel.appendChild(opt);
+    });
+  } catch (e) {}
+  setupGenreAutocomplete();
+}
+
+function setupGenreAutocomplete() {
+  const input = document.getElementById('filterGenre');
+  const dropdown = document.getElementById('filterGenre-dropdown');
+  if (!input || !dropdown) return;
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if (!q) { dropdown.classList.add('hidden'); return; }
+    const matches = allGenres.filter(g =>
+      g.toLowerCase().includes(q) && !selectedGenres.includes(g)
+    ).slice(0, 8);
+    if (!matches.length) { dropdown.classList.add('hidden'); return; }
+    dropdown.innerHTML = matches.map(g =>
+      `<div class="autocomplete-item" onclick="addGenreChip('${g.replace(/'/g, "\\'")}')"><span>${g}</span></div>`
+    ).join('');
+    dropdown.classList.remove('hidden');
+  });
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target))
+      dropdown.classList.add('hidden');
+  });
+}
+
+function addGenreChip(genre) {
+  if (selectedGenres.includes(genre) || selectedGenres.length >= 3) return;
+  selectedGenres.push(genre);
+  renderGenreChips();
+  const input = document.getElementById('filterGenre');
+  input.value = '';
+  document.getElementById('filterGenre-dropdown').classList.add('hidden');
+  if (selectedGenres.length >= 3) input.disabled = true;
+}
+
+function removeGenreChip(genre) {
+  selectedGenres = selectedGenres.filter(g => g !== genre);
+  renderGenreChips();
+  document.getElementById('filterGenre').disabled = false;
+}
+
+function renderGenreChips() {
+  const container = document.getElementById('genreChips');
+  if (!container) return;
+  container.innerHTML = selectedGenres.map(g =>
+    `<span class="genre-chip">${g}<button class="genre-chip-remove" onclick="removeGenreChip('${g.replace(/'/g, "\\'")}')">×</button></span>`
+  ).join('');
 }
 
 // ---- PEOPLE ----
