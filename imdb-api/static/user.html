@@ -5,8 +5,7 @@
     <title>CineDB — User Dashboard</title>
     <link rel="stylesheet" href="/static/css/style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;7
-  00&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
     <style>
       body {
         margin: 0;
@@ -103,12 +102,29 @@
         </a>
         <div class="nav-links">
           <a href="/">Home</a>
-          <a href="/user">Dashboard</a>
+          <a href="/top-rated">Top Rated</a>
+          <a href="/trending">Trending</a>
+          <a href="/search">Search</a>
+          <a href="/people">People</a>
+          <a href="/six-degrees">6 Degrees</a>
+          <a href="/ai" class="ai-nav-link">✦ AI</a>
+          <a href="/stats">Stats</a>
         </div>
         <div class="nav-user">
-          <select id="userSelect" onchange="setUser(this.value)">
-            <option value="">Select User</option>
-          </select>
+          <button type="button" id="userMenuTrigger" class="nav-user-trigger" onclick="toggleUserMenu(event)" aria-haspopup="true" aria-expanded="false">
+            <span class="nav-user-avatar">👤</span>
+            <span id="navUsername" class="nav-username"></span>
+            <span class="nav-user-caret">▾</span>
+          </button>
+          <div id="userMenu" class="user-menu hidden" role="menu">
+            <a href="/user" class="user-menu-item" role="menuitem">
+              <span class="user-menu-icon">📊</span> Dashboard
+            </a>
+            <div class="user-menu-divider"></div>
+            <button type="button" class="user-menu-item danger" role="menuitem" onclick="signOut()">
+              <span class="user-menu-icon">🚪</span> Sign Out
+            </button>
+          </div>
         </div>
       </div>
     </nav>
@@ -118,8 +134,7 @@
         <div class="page-hero">
           <h1>My Dashboard</h1>
           <p>Manage your ratings, reviews, and watchlist in one place.</p>
-          <button onclick="openAddMovieModal()" class="btn btn-primary" 
-  style="margin-top: 15px;">Add New Movie</button>
+          <button onclick="openAddMovieModal()" class="btn btn-primary" style="margin-top: 15px;">Add New Movie</button>
         </div>
 
         <div class="section">
@@ -155,10 +170,8 @@
           <div class="section-header">
             <h2>My Watchlist</h2>
             <div class="watchlist-add-section">
-              <input type="number" id="addWatchlistMovieId" placeholder="Enter Movie 
-  ID" class="filter-input"/>
-              <button onclick="addMovieToWatchlist()" class="btn btn-primary">Add to
-  Watchlist</button>
+              <input type="number" id="addWatchlistMovieId" placeholder="Enter Movie ID" class="filter-input"/>
+              <button onclick="addMovieToWatchlist()" class="btn btn-primary">Add to Watchlist</button>
             </div>
           </div>
           <div id="dashboardWatchlist" class="dashboard-grid"></div>
@@ -227,12 +240,9 @@
         <h2 id="modalTitle">Edit Rating & Review</h2>
         <p id="modalSubtitle" class="modal-subtitle"></p>
         <div class="rating-stars" id="dashboardStars"></div>
-        <p id="dashboardSelectedRating" class="selected-rating">Tap a star to
-  rate</p>
-        <textarea id="dashboardReviewText" placeholder="Write your review 
-  (optional)…" rows="5"></textarea>
-        <button onclick="submitDashboardRating()" class="btn btn-primary 
-  btn-full">Save</button>
+        <p id="dashboardSelectedRating" class="selected-rating">Tap a star to rate</p>
+        <textarea id="dashboardReviewText" placeholder="Write your review (optional)…" rows="5"></textarea>
+        <button onclick="submitDashboardRating()" class="btn btn-primary btn-full">Save</button>
       </div>
     </div>
 

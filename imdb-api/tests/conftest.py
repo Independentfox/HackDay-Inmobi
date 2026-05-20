@@ -109,6 +109,6 @@ def sample_person(client):
 
 @pytest.fixture
 def sample_user(client):
-    resp = client.post("/api/users/", json={"username": "testuser"})
+    resp = client.post("/api/users/", json={"username": "testuser", "password": "testpass"})
     assert resp.status_code == 201
     return resp.json()

@@ -73,7 +73,7 @@ class TestRateMovie:
     def test_multiple_users_rating_averages_correctly(self, client, sample_movie):
         users = []
         for i in range(3):
-            u = client.post("/api/users/", json={"username": f"avguser{i}"}).json()
+            u = client.post("/api/users/", json={"username": f"avguser{i}", "password": "x"}).json()
             users.append(u)
         scores = [6, 8, 10]
         for u, s in zip(users, scores):
@@ -148,8 +148,8 @@ class TestHelpfulVote:
         assert resp.status_code == 404
 
     def test_top_reviews_sorted_by_helpful(self, client, sample_movie):
-        u1 = client.post("/api/users/", json={"username": "rev_user1"}).json()
-        u2 = client.post("/api/users/", json={"username": "rev_user2"}).json()
+        u1 = client.post("/api/users/", json={"username": "rev_user1", "password": "x"}).json()
+        u2 = client.post("/api/users/", json={"username": "rev_user2", "password": "x"}).json()
         r1 = client.post("/api/reviews/", json={"user_id": u1["id"], "movie_id": sample_movie["id"], "rating": 8, "text": "Good review"}).json()
         r2 = client.post("/api/reviews/", json={"user_id": u2["id"], "movie_id": sample_movie["id"], "rating": 9, "text": "Better review"}).json()
         for _ in range(5):

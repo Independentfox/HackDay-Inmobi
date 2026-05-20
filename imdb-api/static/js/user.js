@@ -3,35 +3,65 @@ let currentUser = null;
 let currentMovieId = null;
 let selectedStarRating = 0;
 
-window.addEventListener('DOMContentLoaded', async () => {
-  await loadUsers();
-  loadDashboard();
+window.addEventListener('DOMContentLoaded', () => {
+  initSession();
+  if (currentUser) loadDashboard();
 });
 
-async function loadUsers() {
+function initSession() {
   try {
-    const users = await apiFetch('/api/users/?limit=50');
-    const select = document.getElementById('userSelect');
-    select.innerHTML = '<option value="">Select User</option>';
-    users.forEach(user => {
-      const option = document.createElement('option');
-      option.value = user.id;
-      option.textContent = user.username;
-      select.appendChild(option);
-    });
-    if (users.length > 0) {
-      select.value = users[0].id;
-      setUser(users[0].id);
+    const stored = localStorage.getItem('cinedb_user');
+    if (!stored) { window.location.replace('/signin'); return; }
+    const user = JSON.parse(stored);
+    if (!user || !user.id || !user.username) {
+      localStorage.removeItem('cinedb_user');
+      window.location.replace('/signin');
+      return;
     }
-  } catch (err) {
-    showToast('Unable to load users', 'error');
+    currentUser = user.id;
+    const nameEl = document.getElementById('navUsername');
+    if (nameEl) nameEl.textContent = user.username;
+  } catch {
+    localStorage.removeItem('cinedb_user');
+    window.location.replace('/signin');
   }
 }
 
-function setUser(id) {
-  currentUser = id ? parseInt(id, 10) : null;
-  loadDashboard();
+function signOut() {
+  localStorage.removeItem('cinedb_user');
+  window.location.replace('/signin');
 }
+
+// ---- USER DROPDOWN MENU ----
+function toggleUserMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('userMenu');
+  const trigger = document.getElementById('userMenuTrigger');
+  if (!menu || !trigger) return;
+  const willOpen = menu.classList.contains('hidden');
+  menu.classList.toggle('hidden', !willOpen);
+  trigger.classList.toggle('open', willOpen);
+  trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+}
+
+function closeUserMenu() {
+  const menu = document.getElementById('userMenu');
+  const trigger = document.getElementById('userMenuTrigger');
+  if (!menu || menu.classList.contains('hidden')) return;
+  menu.classList.add('hidden');
+  if (trigger) {
+    trigger.classList.remove('open');
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.nav-user')) closeUserMenu();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeUserMenu();
+});
 
 async function loadDashboard() {
   const summary = document.getElementById('dashboardSummary');

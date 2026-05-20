@@ -24,13 +24,21 @@
         <a href="/six-degrees">6 Degrees</a>
         <a href="/ai" class="ai-nav-link">✦ AI</a>
         <a href="/stats">Stats</a>
-        <a href="/user">Dashboard</a>
       </div>
       <div class="nav-user">
-        <div class="nav-user-info">
+        <button type="button" id="userMenuTrigger" class="nav-user-trigger" onclick="toggleUserMenu(event)" aria-haspopup="true" aria-expanded="false">
           <span class="nav-user-avatar">👤</span>
           <span id="navUsername" class="nav-username"></span>
-          <button class="nav-signout-btn" onclick="signOut()">Sign Out</button>
+          <span class="nav-user-caret">▾</span>
+        </button>
+        <div id="userMenu" class="user-menu hidden" role="menu">
+          <a href="/user" class="user-menu-item" role="menuitem">
+            <span class="user-menu-icon">📊</span> Dashboard
+          </a>
+          <div class="user-menu-divider"></div>
+          <button type="button" class="user-menu-item danger" role="menuitem" onclick="signOut()">
+            <span class="user-menu-icon">🚪</span> Sign Out
+          </button>
         </div>
       </div>
     </div>

@@ -149,7 +149,7 @@ class TestTopRated:
         # Create movie + user + ratings but < 10
         movie = client.post("/api/movies/", json={"title": "Few Votes", "release_year": 2020, "genres": ["Drama"], "certificate": "U"}).json()
         for i in range(9):
-            user = client.post("/api/users/", json={"username": f"tvuser{i}"}).json()
+            user = client.post("/api/users/", json={"username": f"tvuser{i}", "password": "x"}).json()
             client.post("/api/ratings/", json={"user_id": user["id"], "movie_id": movie["id"], "score": 9})
         resp = client.get("/api/movies/top-rated")
         ids = [m["id"] for m in resp.json()]
@@ -158,7 +158,7 @@ class TestTopRated:
     def test_top_rated_with_sufficient_votes(self, client):
         movie = client.post("/api/movies/", json={"title": "Top Movie", "release_year": 2020, "genres": ["Drama"], "certificate": "U"}).json()
         for i in range(11):
-            user = client.post("/api/users/", json={"username": f"truser{i}"}).json()
+            user = client.post("/api/users/", json={"username": f"truser{i}", "password": "x"}).json()
             client.post("/api/ratings/", json={"user_id": user["id"], "movie_id": movie["id"], "score": 9})
         resp = client.get("/api/movies/top-rated")
         data = resp.json()

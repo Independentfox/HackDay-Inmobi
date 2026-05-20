@@ -226,10 +226,15 @@
   </footer>
 
   <script>
-    // Redirect if already signed in
+    // Redirect if already signed in (only when the stored object looks like a real session)
     try {
-      if (localStorage.getItem('cinedb_user')) window.location.replace('/');
-    } catch {}
+      const stored = localStorage.getItem('cinedb_user');
+      if (stored) {
+        const u = JSON.parse(stored);
+        if (u && u.id) window.location.replace('/');
+        else localStorage.removeItem('cinedb_user');
+      }
+    } catch { localStorage.removeItem('cinedb_user'); }
 
     function switchTab(tab) {
       document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
@@ -245,7 +250,19 @@
       el.classList.add('visible');
     }
 
-    function doSignIn() {
+    function setBusy(btn, busy, label) {
+      btn.disabled = busy;
+      btn.textContent = busy ? 'Please wait…' : label;
+    }
+
+    function storeSessionAndGoHome(user) {
+      // Persist the full user object returned by the API ({id, username}).
+      // initSession in app.js requires both fields.
+      localStorage.setItem('cinedb_user', JSON.stringify({ id: user.id, username: user.username }));
+      window.location.replace('/');
+    }
+
+    async function doSignIn() {
       const username = document.getElementById('signin-username').value.trim();
       const password = document.getElementById('signin-password').value;
       document.getElementById('signin-error').classList.remove('visible');
@@ -253,11 +270,25 @@
       if (!username) { showError('signin-error', 'Please enter your username.'); return; }
       if (!password) { showError('signin-error', 'Please enter your password.'); return; }
 
-      localStorage.setItem('cinedb_user', JSON.stringify({ username }));
-      window.location.replace('/');
+      const btn = document.querySelector('#panel-signin .btn-submit');
+      setBusy(btn, true, 'Sign In');
+      try {
+        const res = await fetch('/api/users/signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        if (res.ok) { storeSessionAndGoHome(await res.json()); return; }
+        if (res.status === 401) showError('signin-error', 'Invalid username or password.');
+        else showError('signin-error', 'Sign in failed. Please try again.');
+      } catch {
+        showError('signin-error', 'Network error. Please try again.');
+      } finally {
+        setBusy(btn, false, 'Sign In');
+      }
     }
 
-    function doRegister() {
+    async function doRegister() {
       const username = document.getElementById('register-username').value.trim();
       const password = document.getElementById('register-password').value;
       document.getElementById('register-error').classList.remove('visible');
@@ -267,8 +298,23 @@
       if (!password) { showError('register-error', 'Please choose a password.'); return; }
       if (password.length < 6) { showError('register-error', 'Password must be at least 6 characters.'); return; }
 
-      localStorage.setItem('cinedb_user', JSON.stringify({ username }));
-      window.location.replace('/');
+      const btn = document.querySelector('#panel-register .btn-submit');
+      setBusy(btn, true, 'Create Account');
+      try {
+        const res = await fetch('/api/users/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        if (res.ok) { storeSessionAndGoHome(await res.json()); return; }
+        if (res.status === 409) showError('register-error', 'That username is taken. Try another.');
+        else if (res.status === 422) showError('register-error', 'Please check your username and password.');
+        else showError('register-error', 'Could not create account. Please try again.');
+      } catch {
+        showError('register-error', 'Network error. Please try again.');
+      } finally {
+        setBusy(btn, false, 'Create Account');
+      }
     }
   </script>
 </body>
