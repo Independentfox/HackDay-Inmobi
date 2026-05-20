@@ -433,6 +433,12 @@ body {
 .show-more-reviews-btn { width: 100%; margin-top: 12px; font-size: 0.85rem; }
 
 /* ---- GENRE CHIPS ---- */
+.title-filter-wrapper {
+  flex: 3; min-width: 200px;
+}
+.title-filter-wrapper .filter-input {
+  width: 100%; flex: none;
+}
 .genre-filter-wrapper {
   display: flex; flex-wrap: wrap; align-items: center;
   gap: 6px; flex: 2; min-width: 200px; cursor: text;
