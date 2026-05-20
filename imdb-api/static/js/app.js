@@ -6,29 +6,48 @@ const API = '';  // same origin
 let currentUser = null;
 let currentMovieId = null;
 let selectedStarRating = 0;
-let pageHistory = [];
 
 // ---- INIT ----
 document.addEventListener('DOMContentLoaded', async () => {
   await loadUsers();
   await loadHomePage();
-  await navigateToHash(window.location.hash);
+  await navigateToPath(window.location.pathname, false);
 });
 
-window.addEventListener('hashchange', () => navigateToHash(window.location.hash));
+// Browser back/forward
+window.addEventListener('popstate', async (e) => {
+  const state = e.state;
+  if (!state) { _switchPage('home'); return; }
+  if (state.page === 'movie') await openMovie(state.id, false);
+  else if (state.page === 'person') await openPerson(state.id, false);
+  else _switchPage(state.page);
+});
 
-async function navigateToHash(hash) {
-  if (!hash || hash === '#' || hash === '#home') {
-    showPage('home', false);
-    return;
-  }
-  const [page, id] = hash.slice(1).split('/');
-  if (page === 'movie' && id) {
-    await openMovie(parseInt(id), false);
-  } else if (page === 'person' && id) {
-    await openPerson(parseInt(id), false);
+// Intercept all internal <a> clicks — no full reloads
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[href]');
+  if (!a) return;
+  const href = a.getAttribute('href');
+  if (!href || href.startsWith('http') || href.startsWith('mailto')) return;
+  e.preventDefault();
+  navigateToPath(href, true);
+});
+
+async function navigateToPath(path, push = true) {
+  const parts = path.replace(/^\//, '').split('/');
+  const [segment, id] = parts;
+  if (!segment || segment === 'home') {
+    _switchPage('home');
+    if (push) history.pushState({page: 'home'}, '', '/');
+    else history.replaceState({page: 'home'}, '', '/');
+  } else if (segment === 'movie' && id) {
+    await openMovie(parseInt(id), push);
+  } else if (segment === 'person' && id) {
+    await openPerson(parseInt(id), push);
   } else {
-    showPage(page, false);
+    _switchPage(segment);
+    if (push) history.pushState({page: segment}, '', `/${segment}`);
+    else history.replaceState({page: segment}, '', `/${segment}`);
   }
 }
 
@@ -57,27 +76,25 @@ function setUser(id) {
 }
 
 // ---- PAGE ROUTING ----
-function showPage(name, updateHash = true) {
+function _switchPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const page = document.getElementById(`page-${name}`);
   if (!page) return;
   page.classList.add('active');
-  pageHistory.push(name);
-  if (updateHash && window.location.hash !== `#${name}`) window.location.hash = name;
   window.scrollTo(0, 0);
-
-  // Lazy load page data
   if (name === 'top-rated') loadTopRated();
   if (name === 'trending') loadTrending();
   if (name === 'stats') loadStats();
   if (name === 'people') searchPeople();
-  if (name === 'ai') { /* panel already shown */ }
+}
+
+function showPage(name) {
+  _switchPage(name);
+  history.pushState({page: name}, '', name === 'home' ? '/' : `/${name}`);
 }
 
 function goBack() {
-  pageHistory.pop(); // current
-  const prev = pageHistory[pageHistory.length - 1] || 'home';
-  showPage(prev);
+  window.history.back();
 }
 
 // ---- HOME ----
@@ -140,10 +157,10 @@ function movieCard(m) {
 }
 
 // ---- MOVIE DETAIL ----
-async function openMovie(movieId, updateHash = true) {
+async function openMovie(movieId, push = true) {
   currentMovieId = movieId;
-  showPage('movie-detail', false);
-  if (updateHash && window.location.hash !== `#movie/${movieId}`) window.location.hash = `movie/${movieId}`;
+  _switchPage('movie-detail');
+  if (push) history.pushState({page: 'movie', id: movieId}, '', `/movie/${movieId}`);
   const container = document.getElementById('movieDetailContent');
   container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Loading...</p></div>`;
 
@@ -404,9 +421,9 @@ function personCard(p) {
 }
 
 // ---- PERSON DETAIL ----
-async function openPerson(personId, updateHash = true) {
-  showPage('person-detail', false);
-  if (updateHash && window.location.hash !== `#person/${personId}`) window.location.hash = `person/${personId}`;
+async function openPerson(personId, push = true) {
+  _switchPage('person-detail');
+  if (push) history.pushState({page: 'person', id: personId}, '', `/person/${personId}`);
   const container = document.getElementById('personDetailContent');
   container.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
 
