@@ -63,7 +63,7 @@ function showPage(name, updateHash = true) {
   if (!page) return;
   page.classList.add('active');
   pageHistory.push(name);
-  if (updateHash) window.location.hash = name;
+  if (updateHash && window.location.hash !== `#${name}`) window.location.hash = name;
   window.scrollTo(0, 0);
 
   // Lazy load page data
@@ -143,7 +143,7 @@ function movieCard(m) {
 async function openMovie(movieId, updateHash = true) {
   currentMovieId = movieId;
   showPage('movie-detail', false);
-  if (updateHash) window.location.hash = `movie/${movieId}`;
+  if (updateHash && window.location.hash !== `#movie/${movieId}`) window.location.hash = `movie/${movieId}`;
   const container = document.getElementById('movieDetailContent');
   container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Loading...</p></div>`;
 
@@ -404,7 +404,7 @@ function personCard(p) {
 // ---- PERSON DETAIL ----
 async function openPerson(personId, updateHash = true) {
   showPage('person-detail', false);
-  if (updateHash) window.location.hash = `person/${personId}`;
+  if (updateHash && window.location.hash !== `#person/${personId}`) window.location.hash = `person/${personId}`;
   const container = document.getElementById('personDetailContent');
   container.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
 
