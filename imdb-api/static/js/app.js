@@ -12,8 +12,25 @@ let pageHistory = [];
 document.addEventListener('DOMContentLoaded', async () => {
   await loadUsers();
   await loadHomePage();
-  showPage('home');
+  await navigateToHash(window.location.hash);
 });
+
+window.addEventListener('hashchange', () => navigateToHash(window.location.hash));
+
+async function navigateToHash(hash) {
+  if (!hash || hash === '#' || hash === '#home') {
+    showPage('home', false);
+    return;
+  }
+  const [page, id] = hash.slice(1).split('/');
+  if (page === 'movie' && id) {
+    await openMovie(parseInt(id), false);
+  } else if (page === 'person' && id) {
+    await openPerson(parseInt(id), false);
+  } else {
+    showPage(page, false);
+  }
+}
 
 async function loadUsers() {
   try {
@@ -40,12 +57,13 @@ function setUser(id) {
 }
 
 // ---- PAGE ROUTING ----
-function showPage(name, push = true) {
+function showPage(name, updateHash = true) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const page = document.getElementById(`page-${name}`);
   if (!page) return;
   page.classList.add('active');
-  if (push) pageHistory.push(name);
+  pageHistory.push(name);
+  if (updateHash) window.location.hash = name;
   window.scrollTo(0, 0);
 
   // Lazy load page data
@@ -59,7 +77,7 @@ function showPage(name, push = true) {
 function goBack() {
   pageHistory.pop(); // current
   const prev = pageHistory[pageHistory.length - 1] || 'home';
-  showPage(prev, false);
+  showPage(prev);
 }
 
 // ---- HOME ----
@@ -122,9 +140,10 @@ function movieCard(m) {
 }
 
 // ---- MOVIE DETAIL ----
-async function openMovie(movieId) {
+async function openMovie(movieId, updateHash = true) {
   currentMovieId = movieId;
-  showPage('movie-detail');
+  showPage('movie-detail', false);
+  if (updateHash) window.location.hash = `movie/${movieId}`;
   const container = document.getElementById('movieDetailContent');
   container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Loading...</p></div>`;
 
@@ -383,8 +402,9 @@ function personCard(p) {
 }
 
 // ---- PERSON DETAIL ----
-async function openPerson(personId) {
-  showPage('person-detail');
+async function openPerson(personId, updateHash = true) {
+  showPage('person-detail', false);
+  if (updateHash) window.location.hash = `person/${personId}`;
   const container = document.getElementById('personDetailContent');
   container.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
 
