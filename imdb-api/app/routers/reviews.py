@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 
 from app.database import get_db
-from app.models import Review, Movie, User
+from app.models import Review, Movie, User, ReviewHelpfulVote
 from app.schemas.review import ReviewCreate, ReviewResponse, HelpfulVote
 
 router = APIRouter(prefix="/api/reviews", tags=["Reviews"])
@@ -50,13 +50,40 @@ def write_review(payload: ReviewCreate, db: Session = Depends(get_db)):
 
 @router.post("/helpful", response_model=ReviewResponse)
 def vote_helpful(payload: HelpfulVote, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == payload.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     review = db.query(Review).filter(Review.id == payload.review_id).first()
     if not review:
         raise HTTPException(status_code=404, detail="Review not found")
-    review.helpful_votes += 1
+
+    existing = db.query(ReviewHelpfulVote).filter(
+        ReviewHelpfulVote.user_id == payload.user_id,
+        ReviewHelpfulVote.review_id == payload.review_id
+    ).first()
+
+    if existing:
+        db.delete(existing)
+        review.helpful_votes = max(0, review.helpful_votes - 1)
+        user_voted = False
+    else:
+        db.add(ReviewHelpfulVote(user_id=payload.user_id, review_id=payload.review_id))
+        review.helpful_votes += 1
+        user_voted = True
+
     db.commit()
     db.refresh(review)
-    return review
+
+    return ReviewResponse(
+        id=review.id,
+        user_id=review.user_id,
+        movie_id=review.movie_id,
+        rating=review.rating,
+        text=review.text,
+        helpful_votes=review.helpful_votes,
+        user_voted=user_voted
+    )
 
 
 @router.get("/movie/{movie_id}", response_model=list[ReviewResponse])
