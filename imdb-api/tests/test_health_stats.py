@@ -61,7 +61,7 @@ class TestBayesianRating:
         movie = client.post("/api/movies/", json={"title": "Test Bayesian", "release_year": 2020, "genres": ["Drama"], "certificate": "U"}).json()
         users = []
         for i in range(12):
-            u = client.post("/api/users/", json={"username": f"bay_user{i}"}).json()
+            u = client.post("/api/users/", json={"username": f"bay_user{i}", "password": "x"}).json()
             users.append(u)
             client.post("/api/ratings/", json={"user_id": u["id"], "movie_id": movie["id"], "score": 10})
 

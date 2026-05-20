@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from app.database import engine, SessionLocal, Base
 from app.models import Movie, Person, Credit, User, Rating, Review
 from app.models.watchlist import WatchlistItem
+from app.services.auth import hash_password
 
 
 def seed():
@@ -32,8 +33,9 @@ def seed():
             "priya", "quinn", "ravi", "sara", "tom"
         ]
         users = []
+        seed_password_hash = hash_password("password")
         for username in usernames:
-            u = User(username=username)
+            u = User(username=username, password_hash=seed_password_hash)
             db.add(u)
             users.append(u)
         db.flush()
@@ -411,6 +413,7 @@ def seed():
         db.commit()
         print("✅ Seed data inserted successfully!")
         print(f"   {len(users)} users | {len(people)} people | {len(movies)} movies | {len(credits_data)} credits")
+        print(f"   Seeded users can sign in with password: 'password'")
 
     except Exception as e:
         db.rollback()

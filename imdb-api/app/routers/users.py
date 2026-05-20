@@ -4,16 +4,17 @@ from sqlalchemy.exc import IntegrityError
 from app.database import get_db
 from app.models import Rating, Review, Movie
 from app.models.user import User
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate, UserSignin, UserResponse
 from app.schemas.rating import UserRatingResponse
 from app.schemas.review import UserReviewResponse
+from app.services.auth import hash_password, verify_password
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
 
 @router.post("/", response_model=UserResponse, status_code=201)
 def create_user(payload: UserCreate, db: Session = Depends(get_db)):
-    user = User(username=payload.username)
+    user = User(username=payload.username, password_hash=hash_password(payload.password))
     try:
         db.add(user)
         db.commit()
@@ -21,6 +22,14 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     except IntegrityError:
         db.rollback()
         raise HTTPException(status_code=409, detail="Username already exists")
+    return user
+
+
+@router.post("/signin", response_model=UserResponse)
+def signin(payload: UserSignin, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.username == payload.username).first()
+    if not user or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
     return user
 
 

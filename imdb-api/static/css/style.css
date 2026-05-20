@@ -66,27 +66,69 @@ body {
   transition: all 0.2s;
 }
 .nav-links a:hover { color: var(--text); background: var(--bg-3); }
-.nav-user-info {
+.nav-user { position: relative; }
+.nav-user-trigger {
   display: flex; align-items: center; gap: 8px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
 }
-.nav-user-avatar {
-  font-size: 1.1rem;
-}
+.nav-user-trigger:hover { border-color: var(--gold); background: var(--bg-4); }
+.nav-user-trigger.open { border-color: var(--gold); background: var(--bg-4); }
+.nav-user-avatar { font-size: 1.1rem; line-height: 1; }
 .nav-username {
-  font-size: 0.875rem; font-weight: 600;
-  color: var(--text); max-width: 120px;
+  font-weight: 600;
+  max-width: 120px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.nav-signout-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  padding: 5px 12px; border-radius: 8px;
-  font-size: 0.8rem; cursor: pointer;
-  font-family: inherit; transition: all 0.2s;
+.nav-user-caret {
+  font-size: 0.7rem; color: var(--text-dim);
+  transition: transform 0.2s;
 }
-.nav-signout-btn:hover {
-  border-color: var(--accent); color: var(--accent);
+.nav-user-trigger.open .nav-user-caret { transform: rotate(180deg); }
+
+.user-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 6px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.user-menu-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: none; border: none;
+  color: var(--text);
+  font-family: inherit; font-size: 0.875rem;
+  cursor: pointer;
+  border-radius: 6px;
+  text-decoration: none;
+  text-align: left;
+  width: 100%;
+  transition: background 0.15s, color 0.15s;
+}
+.user-menu-item:hover { background: var(--bg-3); }
+.user-menu-item.danger { color: var(--text-muted); }
+.user-menu-item.danger:hover { background: var(--bg-3); color: var(--accent); }
+.user-menu-icon { width: 18px; text-align: center; }
+.user-menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 6px;
 }
 
 /* ---- PAGES ---- */

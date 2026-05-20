@@ -3,6 +3,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=1, max_length=100)
+    password: str = Field(..., min_length=1, max_length=128)
+
+
+class UserSignin(BaseModel):
+    username: str = Field(..., min_length=1, max_length=100)
+    password: str = Field(..., min_length=1, max_length=128)
 
 
 class UserResponse(BaseModel):
