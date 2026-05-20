@@ -70,14 +70,14 @@
       </div>
       <div class="search-filters card">
         <div class="filter-row">
-          <input id="filterTitle" type="text" placeholder="Movie title..." class="filter-input" />
-          <input id="filterGenre" type="text" placeholder="Genre (Action, Drama...)" class="filter-input" />
-          <input id="filterLang" type="text" placeholder="Language" class="filter-input" />
+          <input id="filterTitle" type="text" placeholder="Movie title..." class="filter-input" onkeydown="if(event.key==='Enter') doSearch()" />
+          <input id="filterGenre" type="text" placeholder="Genre (Action, Drama...)" class="filter-input" onkeydown="if(event.key==='Enter') doSearch()" />
+          <input id="filterLang" type="text" placeholder="Language" class="filter-input" onkeydown="if(event.key==='Enter') doSearch()" />
         </div>
         <div class="filter-row">
-          <input id="filterYearMin" type="number" placeholder="Year from" class="filter-input" min="1900" max="2030" />
-          <input id="filterYearMax" type="number" placeholder="Year to" class="filter-input" min="1900" max="2030" />
-          <input id="filterMinRating" type="number" placeholder="Min rating (1-10)" class="filter-input" min="0" max="10" step="0.1" />
+          <input id="filterYearMin" type="number" placeholder="Year from" class="filter-input" min="1900" max="2030" onkeydown="if(event.key==='Enter') doSearch()" />
+          <input id="filterYearMax" type="number" placeholder="Year to" class="filter-input" min="1900" max="2030" onkeydown="if(event.key==='Enter') doSearch()" />
+          <input id="filterMinRating" type="number" placeholder="Min rating (1-10)" class="filter-input" min="0" max="10" step="0.1" onkeydown="if(event.key==='Enter') doSearch()" />
           <select id="filterCert" class="filter-input">
             <option value="">All Certificates</option>
             <option value="U">U</option>
