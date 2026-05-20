@@ -53,7 +53,10 @@
           <h1>Discover <span class="accent">Cinema</span><br/>Like Never Before</h1>
           <p>Ratings, reviews, cast info, Six Degrees of Separation, and more — all in one place.</p>
           <div class="hero-search">
-            <input id="heroSearch" type="text" placeholder="Search movies or people..." onkeydown="if(event.key==='Enter') heroSearchGo()" />
+            <div class="autocomplete-wrapper hero-search-input-wrap">
+              <input id="heroSearch" type="text" placeholder="Search movies or people..." onkeydown="if(event.key==='Enter') heroSearchGo()" autocomplete="off" />
+              <div id="heroSearch-dropdown" class="autocomplete-dropdown hidden"></div>
+            </div>
             <button onclick="heroSearchGo()">Search</button>
           </div>
         </div>
@@ -81,7 +84,10 @@
       </div>
       <div class="search-filters card">
         <div class="filter-row">
-          <input id="filterTitle" type="text" placeholder="Movie title..." class="filter-input" />
+          <div class="autocomplete-wrapper" style="flex:1">
+            <input id="filterTitle" type="text" placeholder="Movie title..." class="filter-input" autocomplete="off" />
+            <div id="filterTitle-dropdown" class="autocomplete-dropdown hidden"></div>
+          </div>
           <div class="genre-filter-wrapper" onclick="document.getElementById('filterGenre').focus()">
             <div id="genreChips" class="genre-chips-container"></div>
             <div class="autocomplete-wrapper" style="flex:1">

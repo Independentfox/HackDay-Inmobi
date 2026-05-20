@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await navigateToPath(window.location.pathname, false);
   setupPersonAutocomplete('sixDegA');
   setupPersonAutocomplete('sixDegB');
+  setupHeroSearchAutocomplete();
 });
 
 // Browser back/forward
@@ -468,6 +469,7 @@ async function loadSearchFilterOptions() {
     });
   } catch (e) {}
   setupGenreAutocomplete();
+  setupMovieTitleAutocomplete();
 }
 
 function setupGenreAutocomplete() {
@@ -485,6 +487,70 @@ function setupGenreAutocomplete() {
       `<div class="autocomplete-item" onclick="addGenreChip('${g.replace(/'/g, "\\'")}')"><span>${g}</span></div>`
     ).join('');
     dropdown.classList.remove('hidden');
+  });
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target))
+      dropdown.classList.add('hidden');
+  });
+}
+
+function setupMovieTitleAutocomplete() {
+  const input = document.getElementById('filterTitle');
+  const dropdown = document.getElementById('filterTitle-dropdown');
+  if (!input || !dropdown) return;
+  let timer;
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    const q = input.value.trim();
+    if (q.length < 2) { dropdown.classList.add('hidden'); return; }
+    timer = setTimeout(async () => {
+      try {
+        const movies = await apiFetch(`/api/movies/search?title=${encodeURIComponent(q)}&limit=8`);
+        if (!movies.length) { dropdown.classList.add('hidden'); return; }
+        dropdown.innerHTML = movies.map(m =>
+          `<div class="autocomplete-item" onclick="selectTitleSuggestion(${m.id}, '${m.title.replace(/'/g, "\\'")}')">
+            <span>${m.title}</span>
+            <span class="ac-sub">${m.release_year}${m.genres?.length ? ' · ' + m.genres.slice(0,2).join(', ') : ''}</span>
+          </div>`
+        ).join('');
+        dropdown.classList.remove('hidden');
+      } catch { dropdown.classList.add('hidden'); }
+    }, 250);
+  });
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target))
+      dropdown.classList.add('hidden');
+  });
+}
+
+function selectTitleSuggestion(movieId, title) {
+  document.getElementById('filterTitle').value = title;
+  document.getElementById('filterTitle-dropdown').classList.add('hidden');
+  doSearch();
+}
+
+function setupHeroSearchAutocomplete() {
+  const input = document.getElementById('heroSearch');
+  const dropdown = document.getElementById('heroSearch-dropdown');
+  if (!input || !dropdown) return;
+  let timer;
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    const q = input.value.trim();
+    if (q.length < 2) { dropdown.classList.add('hidden'); return; }
+    timer = setTimeout(async () => {
+      try {
+        const movies = await apiFetch(`/api/movies/search?title=${encodeURIComponent(q)}&limit=8`);
+        if (!movies.length) { dropdown.classList.add('hidden'); return; }
+        dropdown.innerHTML = movies.map(m =>
+          `<div class="autocomplete-item" onclick="openMovie(${m.id}); document.getElementById('heroSearch-dropdown').classList.add('hidden');">
+            <span>${m.title}</span>
+            <span class="ac-sub">${m.release_year}${m.genres?.length ? ' · ' + m.genres.slice(0,2).join(', ') : ''}</span>
+          </div>`
+        ).join('');
+        dropdown.classList.remove('hidden');
+      } catch { dropdown.classList.add('hidden'); }
+    }, 250);
   });
   document.addEventListener('click', (e) => {
     if (!input.contains(e.target) && !dropdown.contains(e.target))

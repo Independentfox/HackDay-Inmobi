@@ -185,6 +185,9 @@ body {
   transition: background 0.2s;
 }
 .hero-search button:hover { background: #e0b010; }
+.hero-search-input-wrap { flex: 1; position: relative; }
+.hero-search-input-wrap input { width: 100%; }
+.hero-search-input-wrap .autocomplete-dropdown { border-radius: 12px; top: calc(100% + 8px); }
 
 /* ---- PAGE HERO ---- */
 .page-hero {
