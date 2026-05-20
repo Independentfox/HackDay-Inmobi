@@ -177,7 +177,7 @@ def movie_detail(movie_id: int, user_id: Optional[int] = Query(None), db: Sessio
         .join(User, Review.user_id == User.id)
         .filter(Review.movie_id == movie_id)
         .order_by(desc(Review.helpful_votes))
-        .limit(5)
+        .limit(20)
         .all()
     )
 

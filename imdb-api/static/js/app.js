@@ -231,26 +231,36 @@ function renderMovieDetail(container, m, similar, inWatchlist = false) {
   }
 
   // Reviews
-  const reviewsHtml = m.top_reviews && m.top_reviews.length > 0
-    ? m.top_reviews.map(r => `
-        <div class="review-card">
-          <div class="review-header">
-            <span class="review-user">@${r.username}</span>
-            <span class="review-rating">★ ${r.rating}/10</span>
-          </div>
-          <div class="review-text">${r.text}</div>
-          <div class="review-helpful">
-            <span id="helpful-count-${r.id}">👍 ${r.helpful_votes} found helpful</span>
-            <button
-              id="helpful-btn-${r.id}"
-              class="helpful-btn${r.user_voted ? ' voted' : ''}"
-              onclick="voteHelpful(${r.id}, this)">
-              ${r.user_voted ? 'Mark Unhelpful' : 'Mark Helpful'}
-            </button>
-          </div>
-        </div>
-      `).join('')
-    : '<p style="color: var(--text-muted)">No reviews yet. Be the first!</p>';
+  const renderReview = r => `
+    <div class="review-card">
+      <div class="review-header">
+        <span class="review-user">@${r.username}</span>
+        <span class="review-rating">★ ${r.rating}/10</span>
+      </div>
+      <div class="review-text">${r.text}</div>
+      <div class="review-helpful">
+        <span id="helpful-count-${r.id}">👍 ${r.helpful_votes} found helpful</span>
+        <button
+          id="helpful-btn-${r.id}"
+          class="helpful-btn${r.user_voted ? ' voted' : ''}"
+          onclick="voteHelpful(${r.id}, this)">
+          ${r.user_voted ? 'Mark Unhelpful' : 'Mark Helpful'}
+        </button>
+      </div>
+    </div>`;
+
+  let reviewsHtml;
+  if (!m.top_reviews || m.top_reviews.length === 0) {
+    reviewsHtml = '<p style="color: var(--text-muted)">No reviews yet. Be the first!</p>';
+  } else {
+    const visible = m.top_reviews.slice(0, 5);
+    const hidden  = m.top_reviews.slice(5);
+    const extraHtml = hidden.length > 0
+      ? `<div id="reviewsExtra-${m.id}" class="hidden">${hidden.map(renderReview).join('')}</div>
+         <button class="btn btn-ghost show-more-reviews-btn" onclick="toggleExtraReviews(${m.id}, this)">Show ${hidden.length} More Review${hidden.length !== 1 ? 's' : ''}</button>`
+      : '';
+    reviewsHtml = `<div class="reviews-scroll-container">${visible.map(renderReview).join('')}${extraHtml}</div>`;
+  }
 
   // Similar movies
 
@@ -711,6 +721,15 @@ async function voteHelpful(reviewId, btn) {
   } finally {
     btn.disabled = false;
   }
+}
+
+function toggleExtraReviews(movieId, btn) {
+  const extra = document.getElementById(`reviewsExtra-${movieId}`);
+  const isHidden = extra.classList.contains('hidden');
+  extra.classList.toggle('hidden');
+  btn.textContent = isHidden
+    ? 'Show Less'
+    : `Show ${extra.children.length} More Review${extra.children.length !== 1 ? 's' : ''}`;
 }
 
 // ---- WATCHLIST ----

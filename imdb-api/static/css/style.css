@@ -367,6 +367,12 @@ body {
 .helpful-btn.voted:hover { border-color: var(--accent); color: var(--accent); }
 .helpful-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.reviews-scroll-container { max-height: 480px; overflow-y: auto; padding-right: 6px; }
+.reviews-scroll-container::-webkit-scrollbar { width: 4px; }
+.reviews-scroll-container::-webkit-scrollbar-track { background: var(--bg-3); border-radius: 2px; }
+.reviews-scroll-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.show-more-reviews-btn { width: 100%; margin-top: 12px; font-size: 0.85rem; }
+
 /* ---- PEOPLE ---- */
 .people-grid {
   display: grid;
