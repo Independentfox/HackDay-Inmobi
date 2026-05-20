@@ -253,9 +253,6 @@ function renderMovieDetail(container, m, similar, inWatchlist = false) {
     : '<p style="color: var(--text-muted)">No reviews yet. Be the first!</p>';
 
   // Similar movies
-  const similarHtml = similar && similar.length > 0
-    ? similar.slice(0, 6).map(s => movieCard(s)).join('')
-    : '<p style="color: var(--text-muted)">No similar movies found.</p>';
 
   const runtime = m.runtime_minutes ? `${Math.floor(m.runtime_minutes / 60)}h ${m.runtime_minutes % 60}m` : '—';
 
@@ -303,13 +300,6 @@ function renderMovieDetail(container, m, similar, inWatchlist = false) {
     <div style="margin-top:40px">
       <h2 style="font-size:1.3rem;margin-bottom:24px;font-family:'Playfair Display',serif">Cast & Crew</h2>
       ${castHtml || '<p style="color:var(--text-muted)">No cast/crew data.</p>'}
-    </div>
-
-    <div style="margin-top:40px">
-      <div class="section-header">
-        <h2 style="font-size:1.3rem;font-family:'Playfair Display',serif">Similar Movies</h2>
-      </div>
-      <div class="movie-grid">${similarHtml}</div>
     </div>
   `;
 }
