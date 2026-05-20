@@ -390,11 +390,12 @@ body {
 /* ---- GENRE CHIPS ---- */
 .genre-filter-wrapper {
   display: flex; flex-wrap: wrap; align-items: center;
-  gap: 6px; flex: 2; min-width: 200px;
+  gap: 6px; flex: 2; min-width: 200px; cursor: text;
   background: var(--bg-3); border: 1px solid var(--border);
   border-radius: var(--radius-sm); padding: 6px 10px;
 }
 .genre-filter-wrapper:focus-within { border-color: var(--gold); }
+.genre-filter-wrapper .autocomplete-wrapper { flex: 1; min-width: 0; width: 100%; }
 .genre-chips-container { display: flex; gap: 6px; flex-wrap: wrap; }
 .genre-chip {
   display: inline-flex; align-items: center; gap: 5px;
