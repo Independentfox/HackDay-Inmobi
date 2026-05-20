@@ -515,12 +515,20 @@ body {
   background: var(--bg-2); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 20px;
   display: flex; flex-direction: column; gap: 12px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 .dashboard-watchlist-card {
   min-height: 170px;
 }
 .review-list .review-card {
   margin-bottom: 0;
+}
+.dashboard-card:hover,
+.review-card:hover,
+.dashboard-watchlist-card:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.1);
+  border-color: rgba(245, 197, 24, 0.16);
 }
 
 @media (max-width: 1024px) {
@@ -642,9 +650,11 @@ body {
   font-size: 2rem; cursor: pointer;
   background: none; border: none;
   color: var(--text-muted);
-  transition: color 0.1s, transform 0.1s;
+  transition: color 0.15s ease, transform 0.15s ease;
+  padding: 0 2px;
 }
-.star-btn.active { color: var(--gold); transform: scale(1.1); }
+.star-btn:hover { color: var(--gold-dim); transform: scale(1.04); }
+.star-btn.active { color: var(--gold); transform: scale(1.15); }
 .star-btn.hovered { color: var(--gold-dim); }
 .selected-rating {
   color: var(--text-dim); font-size: 0.875rem; margin-bottom: 16px;
