@@ -167,14 +167,16 @@ body {
   display: flex; gap: 0;
   background: var(--bg-3);
   border: 1px solid var(--border);
-  border-radius: 50px; overflow: hidden;
+  border-radius: 50px;
   max-width: 560px;
+  position: relative;
 }
 .hero-search input {
   flex: 1; background: transparent;
   border: none; outline: none;
   padding: 14px 24px;
   color: var(--text); font-size: 1rem;
+  border-radius: 50px 0 0 50px;
 }
 .hero-search button {
   background: var(--gold);
@@ -183,11 +185,12 @@ body {
   color: #0a0a0f; font-weight: 700;
   font-size: 0.9rem; border-radius: 50px;
   transition: background 0.2s;
+  flex-shrink: 0;
 }
 .hero-search button:hover { background: #e0b010; }
-.hero-search-input-wrap { flex: 1; position: relative; }
+.hero-search-input-wrap { flex: 1; position: relative; min-width: 0; }
 .hero-search-input-wrap input { width: 100%; }
-.hero-search-input-wrap .autocomplete-dropdown { border-radius: 12px; top: calc(100% + 8px); }
+.hero-search-input-wrap .autocomplete-dropdown { border-radius: 12px; top: calc(100% + 8px); left: 0; right: 0; }
 
 /* ---- PAGE HERO ---- */
 .page-hero {
