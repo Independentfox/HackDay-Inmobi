@@ -114,61 +114,61 @@ def seed():
         # --- Movies ---
         movies_data = [
             # idx 0
-            ("3 Idiots", 2009, ["Comedy", "Drama"], "Two friends search for their long-lost companion while recalling their days at an engineering college.", 170, "Hindi", "UA", None),
+            ("3 Idiots", 2009, ["Comedy", "Drama"], "Two friends search for their long-lost companion while recalling their days at an engineering college.", 170, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/d/df/3_idiots_poster.jpg"),
             # idx 1
-            ("Chennai Express", 2013, ["Action", "Comedy", "Romance"], "A man on his way to immerse his grandfather's ashes meets a feisty Tamil girl.", 141, "Hindi", "UA", None),
+            ("Chennai Express", 2013, ["Action", "Comedy", "Romance"], "A man on his way to immerse his grandfather's ashes meets a feisty Tamil girl.", 141, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/1/1b/Chennai_Express.jpg"),
             # idx 2
-            ("Dilwale Dulhania Le Jayenge", 1995, ["Drama", "Romance"], "Two young people fall in love on a trip across Europe but must face family disapproval.", 189, "Hindi", "U", None),
+            ("Dilwale Dulhania Le Jayenge", 1995, ["Drama", "Romance"], "Two young people fall in love on a trip across Europe but must face family disapproval.", 189, "Hindi", "U", "https://upload.wikimedia.org/wikipedia/en/1/1d/Dilwale_Dulhania_Le_Jayenge_poster.jpg"),
             # idx 3
-            ("Bajirao Mastani", 2015, ["Drama", "History", "Romance"], "The passionate love story between Maratha warrior Bajirao and his second wife Mastani.", 158, "Hindi", "UA", None),
+            ("Bajirao Mastani", 2015, ["Drama", "History", "Romance"], "The passionate love story between Maratha warrior Bajirao and his second wife Mastani.", 158, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/8/8e/Bajirao_Mastani_poster.jpg"),
             # idx 4
-            ("Padmaavat", 2018, ["Drama", "History"], "Rajput queen Padmavati is known for her beauty, and a sultan sets out to possess her.", 164, "Hindi", "UA", None),
+            ("Padmaavat", 2018, ["Drama", "History"], "Rajput queen Padmavati is known for her beauty, and a sultan sets out to possess her.", 164, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/7/73/Padmaavat_poster.jpg"),
             # idx 5
-            ("Baahubali: The Beginning", 2015, ["Action", "Adventure", "Drama"], "An adventurer finds himself drawn into a conflict between two warring kingdoms.", 159, "Telugu", "UA", None),
+            ("Baahubali: The Beginning", 2015, ["Action", "Adventure", "Drama"], "An adventurer finds himself drawn into a conflict between two warring kingdoms.", 159, "Telugu", "UA", "https://upload.wikimedia.org/wikipedia/en/5/5f/Baahubali_The_Beginning_poster.jpg"),
             # idx 6
-            ("Baahubali: The Conclusion", 2017, ["Action", "Adventure", "Drama"], "The legend of Baahubali reaches its epic conclusion with stunning action sequences.", 167, "Telugu", "UA", None),
+            ("Baahubali: The Conclusion", 2017, ["Action", "Adventure", "Drama"], "The legend of Baahubali reaches its epic conclusion with stunning action sequences.", 167, "Telugu", "UA", "https://upload.wikimedia.org/wikipedia/en/9/93/Baahubali_2_The_Conclusion_poster.jpg"),
             # idx 7
-            ("RRR", 2022, ["Action", "Drama", "History"], "A fictional story about two Indian revolutionaries who fight the British Raj.", 187, "Telugu", "UA", None),
+            ("RRR", 2022, ["Action", "Drama", "History"], "A fictional story about two Indian revolutionaries who fight the British Raj.", 187, "Telugu", "UA", "https://upload.wikimedia.org/wikipedia/en/2/2b/RRR_Poster.jpg"),
             # idx 8
-            ("Inception", 2010, ["Action", "Sci-Fi", "Thriller"], "A thief who steals corporate secrets through the use of dream-sharing technology.", 148, "English", "UA", None),
+            ("Inception", 2010, ["Action", "Sci-Fi", "Thriller"], "A thief who steals corporate secrets through the use of dream-sharing technology.", 148, "English", "UA", "https://upload.wikimedia.org/wikipedia/en/2/2e/Inception_%282010%29_theatrical_poster.jpg"),
             # idx 9
-            ("Oppenheimer", 2023, ["Biography", "Drama", "History"], "The story of J. Robert Oppenheimer's role in the development of the atomic bomb.", 180, "English", "A", None),
+            ("Oppenheimer", 2023, ["Biography", "Drama", "History"], "The story of J. Robert Oppenheimer's role in the development of the atomic bomb.", 180, "English", "A", "https://upload.wikimedia.org/wikipedia/en/4/4a/Oppenheimer_%28film%29.jpg"),
             # idx 10
-            ("Dangal", 2016, ["Biography", "Drama", "Sport"], "Former wrestler Mahavir Singh Phogat trains his daughters to become world-class wrestlers.", 161, "Hindi", "UA", None),
+            ("Dangal", 2016, ["Biography", "Drama", "Sport"], "Former wrestler Mahavir Singh Phogat trains his daughters to become world-class wrestlers.", 161, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/6/sixty/Dangal_Poster.jpg"),
             # idx 11
-            ("PK", 2014, ["Comedy", "Drama", "Sci-Fi"], "An alien on Earth loses his remote and questions religious customs while searching for it.", 153, "Hindi", "UA", None),
+            ("PK", 2014, ["Comedy", "Drama", "Sci-Fi"], "An alien on Earth loses his remote and questions religious customs while searching for it.", 153, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/d/da/PK_poster.jpg"),
             # idx 12
-            ("Gully Boy", 2019, ["Drama", "Music"], "A street rapper from Mumbai's slums fights his circumstances to find his voice.", 154, "Hindi", "UA", None),
+            ("Gully Boy", 2019, ["Drama", "Music"], "A street rapper from Mumbai's slums fights his circumstances to find his voice.", 154, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/5/56/Gully_Boy_poster.jpg"),
             # idx 13
-            ("Gangubai Kathiawadi", 2022, ["Biography", "Crime", "Drama"], "The story of a woman sold into prostitution who became a powerful voice for her community.", 152, "Hindi", "A", None),
+            ("Gangubai Kathiawadi", 2022, ["Biography", "Crime", "Drama"], "The story of a woman sold into prostitution who became a powerful voice for her community.", 152, "Hindi", "A", "https://upload.wikimedia.org/wikipedia/en/8/89/Gangubai_Kathiawadi_film_poster.jpg"),
             # idx 14
-            ("Don", 2006, ["Action", "Crime", "Thriller"], "A simple man is asked to impersonate an international criminal known as Don.", 155, "Hindi", "UA", None),
+            ("Don", 2006, ["Action", "Crime", "Thriller"], "A simple man is asked to impersonate an international criminal known as Don.", 155, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/1/14/Don_%282006_Hindi_film%29_poster.jpg"),
             # idx 15
-            ("Interstellar", 2014, ["Adventure", "Drama", "Sci-Fi"], "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.", 169, "English", "UA", None),
+            ("Interstellar", 2014, ["Adventure", "Drama", "Sci-Fi"], "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.", 169, "English", "UA", "https://upload.wikimedia.org/wikipedia/en/b/bc/Interstellar_film_poster.jpg"),
             # idx 16
-            ("The Dark Knight", 2008, ["Action", "Crime", "Drama"], "Batman faces the Joker, a criminal mastermind who plunges Gotham into chaos.", 152, "English", "UA", None),
+            ("The Dark Knight", 2008, ["Action", "Crime", "Drama"], "Batman faces the Joker, a criminal mastermind who plunges Gotham into chaos.", 152, "English", "UA", "https://upload.wikimedia.org/wikipedia/en/8/8a/The_Dark_Knight_%282008_film%29.jpg"),
             # idx 17
-            ("Lagaan", 2001, ["Drama", "Musical", "Sport"], "Villagers in colonial India challenge their British rulers to a game of cricket to avoid taxes.", 224, "Hindi", "U", None),
+            ("Lagaan", 2001, ["Drama", "Musical", "Sport"], "Villagers in colonial India challenge their British rulers to a game of cricket to avoid taxes.", 224, "Hindi", "U", "https://upload.wikimedia.org/wikipedia/en/4/43/Lagaan.jpg"),
             # idx 18
-            ("Dil Chahta Hai", 2001, ["Comedy", "Drama", "Romance"], "Three inseparable friends go on a road trip and find love and meaning in life.", 183, "Hindi", "UA", None),
+            ("Dil Chahta Hai", 2001, ["Comedy", "Drama", "Romance"], "Three inseparable friends go on a road trip and find love and meaning in life.", 183, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/4/4c/Dil_Chahta_Hai.jpg"),
             # idx 19
-            ("Queen", 2014, ["Adventure", "Drama", "Romance"], "A sheltered Delhi girl embarks on her honeymoon alone after being jilted and finds herself.", 146, "Hindi", "UA", None),
+            ("Queen", 2014, ["Adventure", "Drama", "Romance"], "A sheltered Delhi girl embarks on her honeymoon alone after being jilted and finds herself.", 146, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/4/45/QueenMoviePoster7thMarch.jpg"),
             # idx 20
-            ("Zindagi Na Milegi Dobara", 2011, ["Adventure", "Drama", "Romance"], "Three friends go on a road trip across Spain and confront their deepest fears.", 155, "Hindi", "UA", None),
+            ("Zindagi Na Milegi Dobara", 2011, ["Adventure", "Drama", "Romance"], "Three friends go on a road trip across Spain and confront their deepest fears.", 155, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/1/17/Zindagi_Na_Milegi_Dobara.jpg"),
             # idx 21
             ("Taare Zameen Par", 2007, ["Drama", "Family"], "A dyslexic child struggles in school until a new art teacher recognizes his talent.", 165, "Hindi", "U", None),
             # idx 22
-            ("Kabhi Khushi Kabhie Gham", 2001, ["Drama", "Romance"], "A wealthy patriarch's estranged family is reunited after years of separation.", 210, "Hindi", "U", None),
+            ("Kabhi Khushi Kabhie Gham", 2001, ["Drama", "Romance"], "A wealthy patriarch's estranged family is reunited after years of separation.", 210, "Hindi", "U", "https://upload.wikimedia.org/wikipedia/en/5/55/Kabhi_Khushi_Kabhie_Gham..._poster.jpg"),
             # idx 23
-            ("Mughal-E-Azam", 1960, ["Drama", "History", "Musical"], "The legendary love story of Mughal Prince Salim and the courtesan Anarkali.", 197, "Hindi", "U", None),
+            ("Mughal-E-Azam", 1960, ["Drama", "History", "Musical"], "The legendary love story of Mughal Prince Salim and the courtesan Anarkali.", 197, "Hindi", "U", "https://upload.wikimedia.org/wikipedia/en/8/8b/Mughal-e-Azam.jpg"),
             # idx 24
-            ("Mother India", 1957, ["Drama"], "A poverty-stricken village woman raises her sons through hardship and moral courage.", 172, "Hindi", "U", None),
-            # idx 25 — NEW
-            ("Dil Se", 1998, ["Drama", "Romance", "Thriller"], "A radio journalist falls passionately in love with a mysterious woman involved in a militant group.", 163, "Hindi", "A", None),
-            # idx 26 — NEW
-            ("Enthiran", 2010, ["Action", "Romance", "Sci-Fi"], "A scientist creates a humanoid robot that develops emotions and falls in love, with dangerous consequences.", 177, "Tamil", "UA", None),
-            # idx 27 — NEW
-            ("Vikram", 2022, ["Action", "Crime", "Thriller"], "A special agent reassembles a defunct Black-ops team to track down a gang of masked killers.", 174, "Tamil", "A", None),
+            ("Mother India", 1957, ["Drama"], "A poverty-stricken village woman raises her sons through hardship and moral courage.", 172, "Hindi", "U", "https://upload.wikimedia.org/wikipedia/en/7/70/Mother_India_poster.jpg"),
+            # idx 25
+            ("Dil Se", 1998, ["Drama", "Romance", "Thriller"], "A radio journalist falls passionately in love with a mysterious woman involved in a militant group.", 163, "Hindi", "A", "https://upload.wikimedia.org/wikipedia/en/7/7a/Dil_Se_poster.jpg"),
+            # idx 26
+            ("Enthiran", 2010, ["Action", "Romance", "Sci-Fi"], "A scientist creates a humanoid robot that develops emotions and falls in love, with dangerous consequences.", 177, "Tamil", "UA", "https://upload.wikimedia.org/wikipedia/en/0/0f/Enthiran_poster.jpg"),
+            # idx 27
+            ("Vikram", 2022, ["Action", "Crime", "Thriller"], "A special agent reassembles a defunct Black-ops team to track down a gang of masked killers.", 174, "Tamil", "A", "https://upload.wikimedia.org/wikipedia/en/a/a5/Vikram_2022_poster.jpg"),
         ]
         movies = []
         for title, year, genres, plot, runtime, lang, cert, poster in movies_data:
