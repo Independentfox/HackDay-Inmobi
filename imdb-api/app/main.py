@@ -62,14 +62,6 @@ def ready():
         )
 
 
-@app.get("/", include_in_schema=False)
-def serve_ui():
-    ui_path = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")
-    if os.path.isfile(ui_path):
-        return FileResponse(ui_path)
-    return {"message": "CineDB API is running. Visit /docs for API documentation."}
-
-
 app.include_router(users.router)
 app.include_router(movies.router)
 app.include_router(people.router)
@@ -79,3 +71,11 @@ app.include_router(reviews.router)
 app.include_router(watchlist.router)
 app.include_router(stats.router)
 app.include_router(ai.router)
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+def serve_spa(full_path: str):
+    ui_path = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")
+    if os.path.isfile(ui_path):
+        return FileResponse(ui_path)
+    return {"message": "CineDB API is running. Visit /docs for API documentation."}
