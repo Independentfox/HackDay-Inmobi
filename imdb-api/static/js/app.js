@@ -165,8 +165,9 @@ async function openMovie(movieId, push = true) {
   container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Loading...</p></div>`;
 
   try {
+    const userParam = currentUser ? `?user_id=${currentUser}` : '';
     const [detail, similar, watchlist] = await Promise.all([
-      apiFetch(`/api/movies/${movieId}`),
+      apiFetch(`/api/movies/${movieId}${userParam}`),
       apiFetch(`/api/movies/${movieId}/similar`).catch(() => []),
       currentUser ? apiFetch(`/api/watchlist/${currentUser}`).catch(() => []) : Promise.resolve([])
     ]);
@@ -225,8 +226,13 @@ function renderMovieDetail(container, m, similar, inWatchlist = false) {
           </div>
           <div class="review-text">${r.text}</div>
           <div class="review-helpful">
-            <span>👍 ${r.helpful_votes} found helpful</span>
-            <button class="helpful-btn" onclick="voteHelpful(${r.id})">Mark Helpful</button>
+            <span id="helpful-count-${r.id}">👍 ${r.helpful_votes} found helpful</span>
+            <button
+              id="helpful-btn-${r.id}"
+              class="helpful-btn${r.user_voted ? ' voted' : ''}"
+              onclick="voteHelpful(${r.id}, this)">
+              ${r.user_voted ? 'Mark Unhelpful' : 'Mark Helpful'}
+            </button>
           </div>
         </div>
       `).join('')
@@ -674,16 +680,26 @@ async function submitRating() {
   }
 }
 
-async function voteHelpful(reviewId) {
+async function voteHelpful(reviewId, btn) {
+  if (!currentUser) { showToast('Please select a user first', 'error'); return; }
+  if (btn.disabled) return;
+  btn.disabled = true;
+
   try {
-    await apiFetch('/api/reviews/helpful', {
+    const result = await apiFetch('/api/reviews/helpful', {
       method: 'POST',
-      body: JSON.stringify({ review_id: reviewId })
+      body: JSON.stringify({ review_id: reviewId, user_id: currentUser })
     });
-    showToast('Marked as helpful 👍', 'success');
-    if (currentMovieId) openMovie(currentMovieId);
+
+    btn.classList.toggle('voted', result.user_voted);
+    btn.textContent = result.user_voted ? 'Mark Unhelpful' : 'Mark Helpful';
+
+    const countEl = document.getElementById(`helpful-count-${reviewId}`);
+    if (countEl) countEl.textContent = `👍 ${result.helpful_votes} found helpful`;
   } catch (e) {
-    showToast('Failed', 'error');
+    showToast('Failed to update', 'error');
+  } finally {
+    btn.disabled = false;
   }
 }
 

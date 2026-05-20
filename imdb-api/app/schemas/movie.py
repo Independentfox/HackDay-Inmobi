@@ -61,6 +61,7 @@ class ReviewInMovie(BaseModel):
     rating: int
     text: str
     helpful_votes: int
+    user_voted: bool = False
 
 
 class MovieDetail(BaseModel):

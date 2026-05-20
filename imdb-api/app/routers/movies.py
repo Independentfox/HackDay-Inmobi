@@ -5,7 +5,7 @@ from typing import Optional
 from datetime import datetime, timedelta, timezone
 
 from app.database import get_db
-from app.models import Movie, Credit, Person, Rating, Review, User
+from app.models import Movie, Credit, Person, Rating, Review, User, ReviewHelpfulVote
 from app.schemas.movie import (
     MovieCreate, MovieUpdate, MovieResponse, MovieDetail,
     CreditInMovie, RatingDistribution, ReviewInMovie, TopRatedMovie, SimilarMovie
@@ -145,7 +145,7 @@ def similar_movies(movie_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{movie_id}", response_model=MovieDetail)
-def movie_detail(movie_id: int, db: Session = Depends(get_db)):
+def movie_detail(movie_id: int, user_id: Optional[int] = Query(None), db: Session = Depends(get_db)):
     movie = db.query(Movie).filter(Movie.id == movie_id).first()
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
@@ -180,6 +180,18 @@ def movie_detail(movie_id: int, db: Session = Depends(get_db)):
         .limit(5)
         .all()
     )
+
+    review_ids = [review.id for review, _ in top_reviews_query]
+    voted_ids = set()
+    if user_id and review_ids:
+        voted_ids = {
+            row[0] for row in db.query(ReviewHelpfulVote.review_id)
+            .filter(
+                ReviewHelpfulVote.user_id == user_id,
+                ReviewHelpfulVote.review_id.in_(review_ids)
+            ).all()
+        }
+
     top_reviews = [
         ReviewInMovie(
             id=review.id,
@@ -187,7 +199,8 @@ def movie_detail(movie_id: int, db: Session = Depends(get_db)):
             username=username,
             rating=review.rating,
             text=review.text,
-            helpful_votes=review.helpful_votes
+            helpful_votes=review.helpful_votes,
+            user_voted=review.id in voted_ids
         )
         for review, username in top_reviews_query
     ]
