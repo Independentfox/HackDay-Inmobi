@@ -608,8 +608,16 @@ function renderStars(selected) {
       document.getElementById('selectedRating').textContent = `${i}/10 — ${ratingLabel(i)}`;
       renderStars(i);
     };
+    btn.onmouseenter = () => {
+      container.querySelectorAll('.star-btn').forEach((b, idx) => {
+        b.classList.toggle('hovered', idx < i);
+      });
+    };
     container.appendChild(btn);
   }
+  container.onmouseleave = () => {
+    container.querySelectorAll('.star-btn').forEach(b => b.classList.remove('hovered'));
+  };
 }
 
 function ratingLabel(n) {

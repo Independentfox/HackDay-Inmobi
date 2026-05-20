@@ -24,6 +24,8 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/imdb
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ./static:/app/static
     depends_on:
       db:
         condition: service_healthy
