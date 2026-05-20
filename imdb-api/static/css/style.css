@@ -575,6 +575,7 @@ body {
   transition: color 0.1s, transform 0.1s;
 }
 .star-btn.active { color: var(--gold); transform: scale(1.1); }
+.star-btn.hovered { color: var(--gold-dim); }
 .selected-rating {
   color: var(--text-dim); font-size: 0.875rem; margin-bottom: 16px;
 }
