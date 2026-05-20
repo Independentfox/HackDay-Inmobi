@@ -23,7 +23,9 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/imdb
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434/v1}
+      OLLAMA_MODEL_FAST: ${OLLAMA_MODEL_FAST:-llama3.2:3b}
+      OLLAMA_MODEL_SMART: ${OLLAMA_MODEL_SMART:-llama3.1:8b}
     volumes:
       - ./static:/app/static
     depends_on:
