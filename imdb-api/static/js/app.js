@@ -140,6 +140,10 @@ function _switchPage(name) {
   if (name === 'people') searchPeople();
   if (name === 'user-dashboard') loadUserDashboard();
   if (name === 'search') loadSearchFilterOptions();
+  if (name === 'home' && !cinebotAutoShown) {
+    cinebotAutoShown = true;
+    setTimeout(() => { if (!cinebotOpen) toggleCinebot(); }, 800);
+  }
 }
 
 function showPage(name) {
@@ -329,10 +333,7 @@ function renderMovieDetail(container, m, similar, inWatchlist = false) {
         <div class="detail-actions">
           <button class="btn btn-primary" onclick="openRatingModal(${m.id}, '${m.title.replace(/'/g, "\\'")}')">★ Rate This</button>
           <button class="btn btn-ghost${inWatchlist ? ' in-watchlist' : ''}" id="watchlistBtn-${m.id}" onclick="toggleWatchlist(${m.id})">${inWatchlist ? '✓ In Watchlist' : '+ Watchlist'}</button>
-          <button class="btn btn-ai" onclick="openMovieAiInsights(${m.id})">✦ AI Insights</button>
-          <button class="btn btn-ai btn-ai-outline" onclick="openMovieAiDna(${m.id})">🧬 DNA</button>
         </div>
-        <div id="movieAiPanel-${m.id}" class="movie-ai-panel hidden"></div>
       </div>
     </div>
 
@@ -1007,14 +1008,305 @@ function showToast(msg, type = '') {
 renderStars(0);
 
 // =====================================================================
-// AI FEATURES
+// CINEBOT — floating tree-based questionnaire assistant
 // =====================================================================
 
+const CINEBOT_TREE = {
+  start: {
+    msg: "Hi! I'm CineBot 🎬\nWhat can I help you with?",
+    options: [
+      { label: "🎭 Find by mood",        next: "mood" },
+      { label: "🎬 Browse by genre",     next: "genre" },
+      { label: "🌍 Browse by language",  next: "language_only" },
+      { label: "🏆 Top rated",           action: "top_rated" },
+      { label: "🔥 Trending now",        action: "trending" },
+      { label: "💎 Hidden gems",         action: "hidden_gems" },
+      { label: "🎉 Watch party pick",    next: "party_group" },
+      { label: "📋 My watchlist",        action: "watchlist" },
+      { label: "📅 Movies by decade",    next: "decade" },
+    ]
+  },
+  mood: {
+    msg: "What's your mood tonight?",
+    options: [
+      { label: "😂 Make me laugh",      set: { genre: "Comedy" },    next: "language" },
+      { label: "💪 Action & adrenaline",set: { genre: "Action" },    next: "language" },
+      { label: "😢 Let me cry",         set: { genre: "Drama" },     next: "language" },
+      { label: "💕 Romantic night",     set: { genre: "Romance" },   next: "language" },
+      { label: "😱 Edge of my seat",    set: { genre: "Thriller" },  next: "language" },
+      { label: "🌟 Inspire me",         set: { genre: "Biography" }, next: "language" },
+      { label: "⚔️ Epic adventure",     set: { genre: "Adventure" }, next: "language" },
+      { label: "👨‍👩‍👧 Family fun",         set: { genre: "Family" },   next: "language" },
+    ]
+  },
+  genre: {
+    msg: "Pick a genre:",
+    options: [
+      { label: "Action",    set: { genre: "Action" },    next: "language" },
+      { label: "Drama",     set: { genre: "Drama" },     next: "language" },
+      { label: "Comedy",    set: { genre: "Comedy" },    next: "language" },
+      { label: "Thriller",  set: { genre: "Thriller" },  next: "language" },
+      { label: "Romance",   set: { genre: "Romance" },   next: "language" },
+      { label: "Biography", set: { genre: "Biography" }, next: "language" },
+      { label: "Family",    set: { genre: "Family" },    next: "language" },
+      { label: "Crime",     set: { genre: "Crime" },     next: "language" },
+      { label: "Sci-Fi",    set: { genre: "Sci-Fi" },    next: "language" },
+      { label: "Musical",   set: { genre: "Musical" },   next: "language" },
+      { label: "Sport",     set: { genre: "Sport" },     next: "language" },
+      { label: "History",   set: { genre: "History" },   next: "language" },
+    ]
+  },
+  language_only: {
+    msg: "Which language?",
+    options: [
+      { label: "🇮🇳 Hindi",   set: { language: "Hindi" },   action: "search_movies" },
+      { label: "🎬 Tamil",    set: { language: "Tamil" },   action: "search_movies" },
+      { label: "🎭 Telugu",   set: { language: "Telugu" },  action: "search_movies" },
+      { label: "🌐 English",  set: { language: "English" }, action: "search_movies" },
+      { label: "🌈 Show all", set: {},                      action: "search_movies" },
+    ]
+  },
+  language: {
+    msg: "Any language preference?",
+    options: [
+      { label: "🌈 Any",      set: {},                      action: "search_movies" },
+      { label: "🇮🇳 Hindi",   set: { language: "Hindi" },   action: "search_movies" },
+      { label: "🎬 Tamil",    set: { language: "Tamil" },   action: "search_movies" },
+      { label: "🎭 Telugu",   set: { language: "Telugu" },  action: "search_movies" },
+      { label: "🌐 English",  set: { language: "English" }, action: "search_movies" },
+    ]
+  },
+  decade: {
+    msg: "Pick a decade:",
+    options: [
+      { label: "1950s–60s", set: { year_min: 1950, year_max: 1969 }, action: "search_movies" },
+      { label: "1970s–80s", set: { year_min: 1970, year_max: 1989 }, action: "search_movies" },
+      { label: "1990s",     set: { year_min: 1990, year_max: 1999 }, action: "search_movies" },
+      { label: "2000s",     set: { year_min: 2000, year_max: 2009 }, action: "search_movies" },
+      { label: "2010s",     set: { year_min: 2010, year_max: 2019 }, action: "search_movies" },
+      { label: "2020s",     set: { year_min: 2020, year_max: 2030 }, action: "search_movies" },
+    ]
+  },
+  party_group: {
+    msg: "Who are you watching with?",
+    options: [
+      { label: "🎉 Friends",     set: { group: "friends" }, next: "party_genre" },
+      { label: "👨‍👩‍👧 Family",     set: { group: "family" },  next: "party_genre" },
+      { label: "💕 Date night",  set: { group: "date" },    next: "party_genre" },
+      { label: "👦 Kids night",  set: { group: "kids", certificate: "U" }, action: "party_pick" },
+    ]
+  },
+  party_genre: {
+    msg: "What vibe for the group?",
+    options: [
+      { label: "😂 Funny",       set: { genre: "Comedy" },    action: "party_pick" },
+      { label: "💪 Action",      set: { genre: "Action" },    action: "party_pick" },
+      { label: "😢 Emotional",   set: { genre: "Drama" },     action: "party_pick" },
+      { label: "🌟 Inspiring",   set: { genre: "Biography" }, action: "party_pick" },
+      { label: "🎲 Surprise us", set: {},                     action: "party_pick" },
+    ]
+  },
+};
+
+let cinebotOpen = false;
+let cinebotCtx  = {};
+let cinebotHistory = [];
+let cinebotAutoShown = false;
+
+function toggleCinebot() {
+  cinebotOpen = !cinebotOpen;
+  document.getElementById('cinebotPanel').classList.toggle('hidden', !cinebotOpen);
+  if (cinebotOpen && document.getElementById('cinebotMessages').children.length === 0) {
+    cinebotReset();
+  }
+}
+
+function cinebotReset() {
+  cinebotCtx = {};
+  cinebotHistory = [];
+  document.getElementById('cinebotMessages').innerHTML = '';
+  cinebotShowNode('start');
+}
+
+function cinebotShowNode(nodeId) {
+  const node = CINEBOT_TREE[nodeId];
+  if (!node) return;
+  cinebotBotMsg(node.msg);
+  cinebotShowOptions(node.options, nodeId);
+}
+
+function cinebotBotMsg(text) {
+  const el = document.createElement('div');
+  el.className = 'cb-msg cb-bot';
+  el.innerHTML = text.replace(/\n/g, '<br>');
+  document.getElementById('cinebotMessages').appendChild(el);
+  _cbScroll();
+}
+
+function cinebotUserMsg(text) {
+  const el = document.createElement('div');
+  el.className = 'cb-msg cb-user';
+  el.textContent = text;
+  document.getElementById('cinebotMessages').appendChild(el);
+  _cbScroll();
+}
+
+function cinebotShowOptions(options, currentNodeId) {
+  const wrap = document.createElement('div');
+  wrap.className = 'cb-options';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'cb-opt-btn';
+    btn.textContent = opt.label;
+    btn.onclick = () => {
+      wrap.remove();
+      cinebotUserMsg(opt.label);
+      if (opt.set) Object.assign(cinebotCtx, opt.set);
+      if (opt.next) {
+        cinebotHistory.push(currentNodeId);
+        cinebotShowNode(opt.next);
+      } else if (opt.action) {
+        cinebotHistory.push(currentNodeId);
+        cinebotRunAction(opt.action);
+      }
+    };
+    wrap.appendChild(btn);
+  });
+  document.getElementById('cinebotMessages').appendChild(wrap);
+  _cbScroll();
+}
+
+async function cinebotRunAction(action) {
+  const loading = document.createElement('div');
+  loading.className = 'cb-msg cb-bot';
+  loading.innerHTML = '<span class="cb-spinner"></span> Searching...';
+  document.getElementById('cinebotMessages').appendChild(loading);
+  _cbScroll();
+
+  try {
+    let movies = [];
+    let headMsg = '';
+
+    if (action === 'top_rated') {
+      movies = await apiFetch('/api/movies/top-rated?limit=5');
+      headMsg = '🏆 Top rated in CineDB:';
+    } else if (action === 'trending') {
+      const all = await apiFetch('/api/movies/trending');
+      movies = all.slice(0, 5);
+      headMsg = '🔥 Trending right now:';
+    } else if (action === 'search_movies') {
+      const p = new URLSearchParams({ limit: 8 });
+      if (cinebotCtx.genre)    p.append('genre', cinebotCtx.genre);
+      if (cinebotCtx.language) p.append('language', cinebotCtx.language);
+      if (cinebotCtx.year_min) p.append('year_min', cinebotCtx.year_min);
+      if (cinebotCtx.year_max) p.append('year_max', cinebotCtx.year_max);
+      movies = await apiFetch(`/api/movies/search?${p}`);
+      const parts = [];
+      if (cinebotCtx.genre)    parts.push(cinebotCtx.genre);
+      if (cinebotCtx.language) parts.push(cinebotCtx.language);
+      headMsg = `🎬 Top picks${parts.length ? ' — ' + parts.join(', ') : ''}:`;
+    } else if (action === 'hidden_gems') {
+      const all = await apiFetch('/api/movies/search?min_rating=7&limit=40');
+      movies = all.filter(m => (m.rating_count || 0) <= 5)
+                  .sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0))
+                  .slice(0, 5);
+      if (!movies.length) movies = all.slice(-5);
+      headMsg = '💎 Hidden gems — great films, few viewers:';
+    } else if (action === 'watchlist') {
+      if (!currentUser) {
+        loading.remove();
+        cinebotBotMsg('Please select a user from the top menu first!');
+        cinebotShowAgain();
+        return;
+      }
+      const items = await apiFetch(`/api/watchlist/${currentUser}`);
+      const fetched = await Promise.all(
+        items.slice(0, 5).map(item => apiFetch(`/api/movies/${item.movie_id}`).catch(() => null))
+      );
+      movies = fetched.filter(Boolean);
+      headMsg = movies.length ? '📋 Your watchlist:' : '📋 Your watchlist is empty!';
+    } else if (action === 'party_pick') {
+      const p = new URLSearchParams({ limit: 20 });
+      if (cinebotCtx.genre)       p.append('genre', cinebotCtx.genre);
+      if (cinebotCtx.certificate) p.append('certificate', cinebotCtx.certificate);
+      const all = await apiFetch(`/api/movies/search?${p}`);
+      movies = all.slice(0, 1);
+      const groupLabel = { friends:'friends 🎉', family:'family 👨‍👩‍👧', date:'date night 💕', kids:'kids 👦' }[cinebotCtx.group] || 'your group';
+      headMsg = movies.length ? `Perfect pick for ${groupLabel}:` : 'No movies found for that combo.';
+    }
+
+    loading.remove();
+
+    if (!movies.length) {
+      cinebotBotMsg('No movies found for that combo. Try different filters!');
+    } else {
+      cinebotBotMsg(headMsg);
+      movies.forEach(m => cinebotMovieCard(m));
+    }
+  } catch (e) {
+    loading.remove();
+    cinebotBotMsg('Oops, something went wrong. Try again!');
+  }
+
+  cinebotShowAgain();
+}
+
+function cinebotMovieCard(m) {
+  const wrap = document.createElement('div');
+  wrap.className = 'cb-movie-card';
+  wrap.onclick = () => { toggleCinebot(); openMovie(m.id); };
+  const rating = (m.average_rating || m.bayesian_rating) ? (m.average_rating || m.bayesian_rating).toFixed(1) : '—';
+  const poster = m.poster_url
+    ? `<img src="${m.poster_url}" onerror="this.parentElement.innerHTML='🎬'">`
+    : '🎬';
+  wrap.innerHTML = `
+    <div class="cb-card-poster">${poster}</div>
+    <div class="cb-card-info">
+      <div class="cb-card-title">${m.title}</div>
+      <div class="cb-card-meta">${m.release_year || ''} · ★ ${rating}</div>
+      <div class="cb-card-lang">${m.language || ''}</div>
+    </div>`;
+  document.getElementById('cinebotMessages').appendChild(wrap);
+  _cbScroll();
+}
+
+function cinebotShowAgain() {
+  const wrap = document.createElement('div');
+  wrap.className = 'cb-options';
+  const again = document.createElement('button');
+  again.className = 'cb-opt-btn';
+  again.textContent = '🔄 Start over';
+  again.onclick = cinebotReset;
+  wrap.appendChild(again);
+  if (cinebotHistory.length > 1) {
+    const back = document.createElement('button');
+    back.className = 'cb-opt-btn';
+    back.textContent = '← Go back';
+    back.onclick = () => {
+      wrap.remove();
+      cinebotCtx = {};
+      const prev = cinebotHistory.pop();
+      cinebotShowNode(prev);
+    };
+    wrap.appendChild(back);
+  }
+  document.getElementById('cinebotMessages').appendChild(wrap);
+  _cbScroll();
+}
+
+function _cbScroll() {
+  const el = document.getElementById('cinebotMessages');
+  if (el) el.scrollTop = el.scrollHeight;
+}
+
+// Keep showAiTab as no-op so old links don't break
 function showAiTab(tab) {
-  ['search', 'insights', 'dna', 'recommend'].forEach(t => {
-    document.getElementById(`ai-panel-${t}`).classList.toggle('hidden', t !== tab);
-    document.getElementById(`ai-panel-${t}`).classList.toggle('active', t === tab);
-    document.getElementById(`ai-tab-btn-${t}`).classList.toggle('active', t === tab);
+  const tabs = ['chat','mood','search','compare','gems','party','diet','era','insights','dna','recommend'];
+  tabs.forEach(t => {
+    const panel = document.getElementById(`ai-panel-${t}`);
+    const btn   = document.getElementById(`ai-tab-btn-${t}`);
+    if (panel) { panel.classList.toggle('hidden', t !== tab); panel.classList.toggle('active', t === tab); }
+    if (btn)   btn.classList.toggle('active', t === tab);
   });
 }
 
@@ -1243,7 +1535,334 @@ async function doAiSixDegreesStory(personAId, personBId) {
 function aiErrorHtml(e) {
   const msg = e.message || '';
   if (msg.includes('503')) {
-    return `<div class="ai-result-card"><p style="color:var(--gold)">⚠️ AI features require <code>ANTHROPIC_API_KEY</code> to be set in the server environment.</p></div>`;
+    return `<div class="ai-result-card"><p style="color:var(--gold)">⚠️ AI requires Ollama running locally.<br><code>ollama serve && ollama pull llama3.1:8b && ollama pull llama3.2:3b</code></p></div>`;
   }
   return `<div class="ai-result-card"><p style="color:var(--text-muted)">AI analysis failed. Please try again.</p></div>`;
+}
+
+// =====================================================================
+// NEW AI FEATURES
+// =====================================================================
+
+// ---- CHATBOT ----
+let chatSessionId = null;
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const message = input.value.trim();
+  if (!message) return;
+  input.value = '';
+
+  appendChatMessage('user', message);
+  const thinkingEl = appendChatMessage('bot', '...', [], true);
+
+  try {
+    const data = await apiFetch('/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, session_id: chatSessionId, user_id: currentUser || 1 })
+    });
+    chatSessionId = data.session_id;
+    thinkingEl.remove();
+    appendChatMessage('bot', data.reply, data.tools_used || []);
+  } catch (e) {
+    thinkingEl.remove();
+    appendChatMessage('bot', 'CineBot is offline. Make sure Ollama is running with llama3.1:8b.');
+  }
+}
+
+function appendChatMessage(role, text, toolsUsed = [], isThinking = false) {
+  const container = document.getElementById('chatMessages');
+  const el = document.createElement('div');
+  el.className = `chat-message ${role}${isThinking ? ' thinking' : ''}`;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble';
+  bubble.textContent = text;
+  el.appendChild(bubble);
+
+  if (toolsUsed && toolsUsed.length > 0) {
+    const tools = document.createElement('div');
+    tools.className = 'chat-tools-used';
+    tools.textContent = `🔧 ${toolsUsed.map(t => t.tool).join(', ')}`;
+    el.appendChild(tools);
+  }
+
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+  return el;
+}
+
+async function clearChatSession() {
+  if (chatSessionId) {
+    await apiFetch(`/api/ai/chat/${chatSessionId}`, { method: 'DELETE' }).catch(() => {});
+    chatSessionId = null;
+  }
+  document.getElementById('chatMessages').innerHTML = '';
+}
+
+// ---- MOOD DISCOVERY ----
+async function doMoodSearch() {
+  const mood = document.getElementById('moodInput').value.trim();
+  if (!mood) { showToast('Describe your mood first', 'error'); return; }
+
+  const interp = document.getElementById('moodInterpretation');
+  const results = document.getElementById('moodResults');
+  interp.classList.add('hidden');
+  results.innerHTML = `<div class="loading"><div class="spinner"></div><p>AI is reading your vibe...</p></div>`;
+
+  try {
+    const data = await apiFetch('/api/ai/mood', {
+      method: 'POST',
+      body: JSON.stringify({ mood })
+    });
+
+    if (data.mood_interpretation) {
+      interp.innerHTML = `<div class="ai-interp-box"><span class="ai-interp-label">✦ AI reads your vibe:</span><span class="ai-interp-text">${data.mood_interpretation}</span></div>`;
+      interp.classList.remove('hidden');
+    }
+
+    if (!data.picks || data.picks.length === 0) {
+      results.innerHTML = '<div class="empty-state"><div class="empty-icon">🌙</div><p>No movies matched that mood. Try rephrasing.</p></div>';
+      return;
+    }
+    results.innerHTML = data.picks.map(p => moodMovieCard(p)).join('');
+  } catch (e) {
+    results.innerHTML = aiErrorHtml(e);
+  }
+}
+
+function moodMovieCard(m) {
+  const genres = (m.genres || []).slice(0, 2).map(g => `<span class="genre-tag">${g}</span>`).join('');
+  const rating = m.average_rating ? m.average_rating.toFixed(1) : '—';
+  const poster = m.poster_url
+    ? `<img src="${m.poster_url}" alt="${m.title}" loading="lazy" onerror="this.parentElement.innerHTML='🎬'">`
+    : '🎬';
+  return `
+    <div class="movie-card" onclick="openMovie(${m.id})">
+      <div class="movie-poster">${poster}<span class="movie-cert">${m.certificate || 'U'}</span></div>
+      <div class="movie-info">
+        <div class="movie-title">${m.title}</div>
+        <div class="movie-meta"><span>${m.release_year || ''}</span><span class="movie-rating"><span class="star">★</span>${rating}</span></div>
+        <div class="genre-tags">${genres}</div>
+        ${(m.why_fits_mood || m.why) ? `<div class="mood-why">✦ ${m.why_fits_mood || m.why}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+// ---- MOVIE COMPARE ----
+async function doCompare() {
+  const a = document.getElementById('compareMovieA').value;
+  const b = document.getElementById('compareMovieB').value;
+  if (!a || !b) { showToast('Enter both movie IDs', 'error'); return; }
+
+  const container = document.getElementById('compareResult');
+  container.innerHTML = `<div class="loading"><div class="spinner"></div><p>AI is analyzing both films...</p></div>`;
+
+  try {
+    const data = await apiFetch(`/api/ai/movies/compare?a=${a}&b=${b}`);
+    container.innerHTML = renderCompareCard(data);
+  } catch (e) {
+    container.innerHTML = aiErrorHtml(e);
+  }
+}
+
+function renderCompareCard(data) {
+  const ma = data.movie_a;
+  const mb = data.movie_b;
+  const posterA = ma.poster_url ? `<img src="${ma.poster_url}" onerror="this.parentElement.innerHTML='🎬'">` : '🎬';
+  const posterB = mb.poster_url ? `<img src="${mb.poster_url}" onerror="this.parentElement.innerHTML='🎬'">` : '🎬';
+  return `
+    <div class="ai-result-card">
+      <div class="ai-result-header"><span class="ai-badge">⚖️ AI Comparison</span></div>
+      <div class="compare-result-header">
+        <div class="compare-movie-thumb" onclick="openMovie(${ma.id})">
+          <div class="compare-poster">${posterA}</div>
+          <div class="compare-movie-name">${ma.title}</div>
+          <div class="compare-movie-rating">★ ${ma.average_rating ? ma.average_rating.toFixed(1) : '—'}</div>
+        </div>
+        <div class="compare-vs">VS</div>
+        <div class="compare-movie-thumb" onclick="openMovie(${mb.id})">
+          <div class="compare-poster">${posterB}</div>
+          <div class="compare-movie-name">${mb.title}</div>
+          <div class="compare-movie-rating">★ ${mb.average_rating ? mb.average_rating.toFixed(1) : '—'}</div>
+        </div>
+      </div>
+      ${data.similarities    ? `<div class="compare-section"><span class="compare-label">What they share</span><p class="compare-text">${Array.isArray(data.similarities) ? data.similarities.join(' · ') : data.similarities}</p></div>` : ''}
+      ${data.tone_a          ? `<div class="compare-section"><span class="compare-label">${ma.title} — tone</span><p class="compare-text">${data.tone_a}</p></div>` : ''}
+      ${data.tone_b          ? `<div class="compare-section"><span class="compare-label">${mb.title} — tone</span><p class="compare-text">${data.tone_b}</p></div>` : ''}
+      ${data.better_for_a    ? `<div class="compare-section"><span class="compare-label">Watch ${ma.title} if...</span><p class="compare-text">${data.better_for_a}</p></div>` : ''}
+      ${data.better_for_b    ? `<div class="compare-section"><span class="compare-label">Watch ${mb.title} if...</span><p class="compare-text">${data.better_for_b}</p></div>` : ''}
+      ${data.verdict         ? `<div class="ai-consensus"><strong>Verdict:</strong> ${data.verdict}</div>` : ''}
+    </div>`;
+}
+
+// ---- HIDDEN GEMS ----
+async function doHiddenGems() {
+  if (!currentUser) { showToast('Please select a user first', 'error'); return; }
+  const container = document.getElementById('gemsResult');
+  container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Mining for hidden gems...</p></div>`;
+
+  try {
+    const data = await apiFetch(`/api/ai/users/${currentUser}/hidden-gems`);
+    if (!data.gems || data.gems.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">💎</div><p>No hidden gems found. Rate more movies to improve suggestions.</p></div>';
+      return;
+    }
+    container.innerHTML = `<div class="rec-list">${data.gems.map(g => gemCard(g)).join('')}</div>`;
+  } catch (e) {
+    container.innerHTML = aiErrorHtml(e);
+  }
+}
+
+function gemCard(g) {
+  const poster = g.poster_url ? `<img src="${g.poster_url}" onerror="this.parentElement.innerHTML='🎬'">` : '🎬';
+  return `
+    <div class="rec-card" onclick="openMovie(${g.id})">
+      <div class="gem-poster">${poster}</div>
+      <div class="rec-content">
+        <div class="rec-title">💎 ${g.title}</div>
+        <div class="rec-genres">${(g.genres || []).join(' · ')} · ${g.release_year}</div>
+        ${(g.gem_reason || g.why_for_you) ? `<div class="rec-reason">✦ ${g.gem_reason || g.why_for_you}</div>` : ''}
+        ${g.average_rating ? `<div class="rec-rating">★ ${g.average_rating.toFixed(1)} avg · ${g.rating_count || 0} ratings</div>` : ''}
+      </div>
+    </div>`;
+}
+
+// ---- WATCH PARTY ----
+let selectedGroupType = 'friends';
+
+function selectGroup(btn, type) {
+  selectedGroupType = type;
+  document.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+async function doWatchParty() {
+  const mood = document.getElementById('partyMood').value.trim();
+  const container = document.getElementById('partyResult');
+  container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Planning the perfect watch...</p></div>`;
+
+  try {
+    const data = await apiFetch('/api/ai/watch-party', {
+      method: 'POST',
+      body: JSON.stringify({ group_type: selectedGroupType, mood, avoid_genres: [] })
+    });
+    container.innerHTML = renderPartyResult(data);
+  } catch (e) {
+    container.innerHTML = aiErrorHtml(e);
+  }
+}
+
+function renderPartyResult(data) {
+  if (!data.pick) return '<div class="empty-state"><div class="empty-icon">🎉</div><p>No movies found for this group.</p></div>';
+  const p = data.pick;
+  const poster = p.poster_url ? `<img src="${p.poster_url}" onerror="this.parentElement.innerHTML='🎬'">` : '🎬';
+  const starters = (p.conversation_starters || []).map(s => `<li>${s}</li>`).join('');
+  const runnerUp = data.runner_up ? `
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+      <span style="color:var(--text-muted);font-size:0.8rem;font-weight:700;text-transform:uppercase">Runner Up</span>
+      <div class="runner-up-card" onclick="openMovie(${data.runner_up.id})">
+        ${data.runner_up.title} · ${data.runner_up.release_year} · ★ ${data.runner_up.average_rating ? data.runner_up.average_rating.toFixed(1) : '—'}
+      </div>
+    </div>` : '';
+  return `
+    <div class="ai-result-card">
+      <div class="ai-result-header">
+        <span class="ai-badge">🎉 Watch Party Pick</span>
+        <span style="color:var(--text-dim);font-size:0.85rem">${data.group_type} night</span>
+      </div>
+      <div class="party-pick-layout">
+        <div class="party-poster" onclick="openMovie(${p.id})">${poster}</div>
+        <div class="party-info">
+          <div class="party-title" onclick="openMovie(${p.id})">${p.title}</div>
+          <div class="party-meta">${p.release_year} · ${p.language} · ★ ${p.average_rating ? p.average_rating.toFixed(1) : '—'}</div>
+          <div class="party-genres" style="margin:8px 0">${(p.genres || []).map(g => `<span class="genre-tag">${g}</span>`).join('')}</div>
+          ${p.why_perfect ? `<p class="party-why">✦ ${p.why_perfect}</p>` : ''}
+          ${starters ? `<div class="party-starters"><div class="starters-label">Conversation Starters</div><ul class="starters-list">${starters}</ul></div>` : ''}
+        </div>
+      </div>
+      ${runnerUp}
+    </div>`;
+}
+
+// ---- CINEMA DIET (BLIND SPOTS) ----
+async function doCinemaDiet() {
+  if (!currentUser) { showToast('Please select a user first', 'error'); return; }
+  const container = document.getElementById('dietResult');
+  container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Auditing your cinema diet...</p></div>`;
+
+  try {
+    const data = await apiFetch(`/api/ai/users/${currentUser}/blind-spots`);
+    if (!data.blind_spots || data.blind_spots.length === 0) {
+      container.innerHTML = `<div class="ai-result-card"><p style="color:var(--green)">✓ ${data.message || 'No major blind spots found — impressive!'}</p></div>`;
+      return;
+    }
+    container.innerHTML = `<div class="rec-list">${data.blind_spots.map(bs => dietCard(bs)).join('')}</div>`;
+  } catch (e) {
+    container.innerHTML = aiErrorHtml(e);
+  }
+}
+
+function dietCard(bs) {
+  const pick = bs.pick_movie;
+  if (!pick) return '';
+  const poster = pick.poster_url ? `<img src="${pick.poster_url}" onerror="this.parentElement.innerHTML='🎬'">` : '🎬';
+  const catLabel = bs.category === 'genre' ? `Genre gap: ${bs.value}` : bs.category === 'language' ? `Language gap: ${bs.value}` : `Decade gap: ${bs.value}`;
+  return `
+    <div class="rec-card" onclick="openMovie(${pick.id})">
+      <div class="gem-poster">${poster}</div>
+      <div class="rec-content">
+        <div style="font-size:0.75rem;font-weight:700;color:var(--accent);text-transform:uppercase;margin-bottom:4px">${catLabel}</div>
+        <div class="rec-title">${pick.title}</div>
+        <div class="rec-genres">${(pick.genres || []).join(' · ')} · ${pick.release_year}</div>
+        ${(bs.why_start_here || bs.why) ? `<div class="rec-reason">✦ ${bs.why_start_here || bs.why}</div>` : ''}
+        ${pick.average_rating ? `<div class="rec-rating">★ ${pick.average_rating.toFixed(1)} avg</div>` : ''}
+      </div>
+    </div>`;
+}
+
+// ---- ERA ANALYSIS ----
+async function doEraAnalysis(decade) {
+  document.querySelectorAll('.era-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim().startsWith(String(decade)));
+  });
+
+  const container = document.getElementById('eraResult');
+  container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Analyzing the ${decade}s...</p></div>`;
+
+  try {
+    const data = await apiFetch(`/api/ai/insights/era?decade=${decade}`);
+    if (data.message) {
+      container.innerHTML = `<div class="ai-result-card"><p style="color:var(--text-muted)">${data.message}</p></div>`;
+      return;
+    }
+    container.innerHTML = renderEraCard(data);
+  } catch (e) {
+    container.innerHTML = aiErrorHtml(e);
+  }
+}
+
+function renderEraCard(data) {
+  const themes   = (data.dominant_themes || []).map(t => `<span class="dna-tag theme">${t}</span>`).join('');
+  const defining = data.defining_film ? `<span class="dna-tag">${data.defining_film}</span>` : '';
+  const moviesHtml = (data.movies || []).map(m => `
+    <div class="film-card" onclick="openMovie(${m.id})">
+      <div class="film-title">${m.title}</div>
+      <div class="film-year">${m.release_year}</div>
+      <div class="film-rating">★ ${m.average_rating ? m.average_rating.toFixed(1) : '—'}</div>
+    </div>`).join('');
+  const overview = data.narrative || data.overview || '';
+  return `
+    <div class="ai-result-card">
+      <div class="ai-result-header">
+        <span class="ai-badge">🕰️ ${data.decade}s Cinema</span>
+        <span style="color:var(--text-dim);font-size:0.85rem">${data.movie_count} films in CineDB</span>
+      </div>
+      ${overview   ? `<p class="ai-summary">${overview}</p>` : ''}
+      ${themes     ? `<div class="dna-row"><span class="dna-label">Themes</span><div class="dna-tags">${themes}</div></div>` : ''}
+      ${defining   ? `<div class="dna-row"><span class="dna-label">Defining Film</span><div class="dna-tags">${defining}</div></div>` : ''}
+      ${data.style_notes ? `<div class="compare-section"><span class="compare-label">Style</span><p class="compare-text">${data.style_notes}</p></div>` : ''}
+      ${data.cultural_context ? `<div class="compare-section"><span class="compare-label">Cultural Context</span><p class="compare-text">${data.cultural_context}</p></div>` : ''}
+    </div>
+    ${moviesHtml ? `<div style="margin-top:24px"><h3 style="font-size:1.1rem;margin-bottom:16px;font-family:'Playfair Display',serif">Films from the ${data.decade}s in CineDB</h3><div class="filmography-grid">${moviesHtml}</div></div>` : ''}`;
 }
