@@ -156,7 +156,7 @@ def seed():
             # idx 20
             ("Zindagi Na Milegi Dobara", 2011, ["Adventure", "Drama", "Romance"], "Three friends go on a road trip across Spain and confront their deepest fears.", 155, "Hindi", "UA", "https://upload.wikimedia.org/wikipedia/en/1/17/Zindagi_Na_Milegi_Dobara.jpg"),
             # idx 21
-            ("Taare Zameen Par", 2007, ["Drama", "Family"], "A dyslexic child struggles in school until a new art teacher recognizes his talent.", 165, "Hindi", "U", None),
+            ("Taare Zameen Par", 2007, ["Drama", "Family"], "A dyslexic child struggles in school until a new art teacher recognizes his talent.", 165, "Hindi", "U", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLKhA9TsgkzaYnU6vWozqFidVVhRcNxqJywYjdYjNVnRftciOf"),
             # idx 22
             ("Kabhi Khushi Kabhie Gham", 2001, ["Drama", "Romance"], "A wealthy patriarch's estranged family is reunited after years of separation.", 210, "Hindi", "U", "https://upload.wikimedia.org/wikipedia/en/5/55/Kabhi_Khushi_Kabhie_Gham..._poster.jpg"),
             # idx 23
