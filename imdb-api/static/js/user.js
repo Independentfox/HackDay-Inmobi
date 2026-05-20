@@ -267,3 +267,99 @@ function showToast(message, type = '') {
   toast.className = `toast ${type}`;
   setTimeout(() => toast.classList.add('hidden'), 3000);
 }
+
+async function addMovieToWatchlist() {
+    if (!currentUser) {
+        showToast('Select a user first', 'error');
+        return;
+    }
+    const movieIdInput = document.getElementById('addWatchlistMovieId');
+    const movieId = parseInt(movieIdInput.value);
+
+    if (isNaN(movieId) || movieId <= 0) {
+        showToast('Please enter a valid Movie ID.', 'error');
+        return;
+    }
+
+    try {
+        await apiFetch(`/api/watchlist/`, {
+            method: 'POST',
+            body: JSON.stringify({ user_id: currentUser, movie_id: movieId }),
+        });
+        showToast('Movie added to watchlist successfully!', 'success');
+        movieIdInput.value = ''; // Clear input
+        loadDashboard(); // Refresh the dashboard
+    } catch (error) {
+        if (error.status === 409) {
+            showToast('Movie is already in your watchlist!', 'warning');
+        } else {
+            console.error('Error adding movie to watchlist:', error);
+            showToast('An error occurred while adding movie to watchlist.', 'error');
+        }
+    }
+}
+
+function openAddMovieModal() {
+    document.getElementById('addMovieModal').classList.remove('hidden');
+    // Clear form fields
+    document.getElementById('newMovieTitle').value = '';
+    document.getElementById('newMovieYear').value = '';
+    document.getElementById('newMovieGenres').value = '';
+    document.getElementById('newMoviePlot').value = '';
+    document.getElementById('newMovieRuntime').value = '';
+    document.getElementById('newMovieLanguage').value = 'English';
+    document.getElementById('newMovieCertificate').value = 'U';
+    document.getElementById('newMoviePoster').value = '';
+}
+
+function closeAddMovieModal() {
+    document.getElementById('addMovieModal').classList.add('hidden');
+}
+
+async function submitNewMovie() {
+    const title = document.getElementById('newMovieTitle').value.trim();
+    const release_year_raw = document.getElementById('newMovieYear').value;
+    const release_year = parseInt(release_year_raw, 10);
+    const genres = document.getElementById('newMovieGenres').value.split(',').map(g => g.trim()).filter(g => g.length > 0);
+    const plot_summary = document.getElementById('newMoviePlot').value.trim();
+    const runtime_raw = document.getElementById('newMovieRuntime').value;
+    const runtime_minutes = parseInt(runtime_raw, 10);
+    const language = document.getElementById('newMovieLanguage').value.trim();
+    const certificate = document.getElementById('newMovieCertificate').value;
+    const poster_url = document.getElementById('newMoviePoster').value.trim();
+
+    if (!title || release_year_raw === '' || Number.isNaN(release_year) || !genres.length || !plot_summary || runtime_raw === '' || Number.isNaN(runtime_minutes) || !language || !certificate) {
+        showToast('Please fill in all required fields (Title, Year, Genres, Plot, Runtime, Language, Certificate).', 'error');
+        return;
+    }
+    if (release_year < 0) {
+        showToast('Release year cannot be negative.', 'error');
+        return;
+    }
+    if (runtime_minutes < 0) {
+        showToast('Runtime cannot be negative.', 'error');
+        return;
+    }
+
+    try {
+        const response = await apiFetch('/api/movies/', {
+            method: 'POST',
+            body: JSON.stringify({
+                title,
+                release_year,
+                genres,
+                plot_summary,
+                runtime_minutes,
+                language,
+                certificate,
+                poster_url: poster_url || null // Allow null for optional poster
+            }),
+        });
+        showToast(`Movie "${response.title}" added successfully!`, 'success');
+        closeAddMovieModal();
+        // Optionally refresh a movie list if one is displayed
+    } catch (error) {
+        console.error('Error adding new movie:', error);
+        showToast(`Failed to add movie: ${error.detail || error.message || 'Unknown error'}`, 'error');
+    }
+}
