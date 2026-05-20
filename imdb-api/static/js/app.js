@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadUsers();
   await loadHomePage();
   await navigateToPath(window.location.pathname, false);
+  setupPersonAutocomplete('sixDegA');
+  setupPersonAutocomplete('sixDegB');
 });
 
 // Browser back/forward
@@ -492,7 +494,7 @@ function renderPersonDetail(container, p, filmographyData, knownFor) {
         ${p.bio ? `<p class="person-detail-bio">${p.bio}</p>` : ''}
         <div class="person-id-badge">🆔 Person ID: ${p.id}</div>
         <div style="margin-top:12px">
-          <button class="btn btn-ghost btn-sm" onclick="prefillSixDegrees(${p.id})">
+          <button class="btn btn-ghost btn-sm" onclick="prefillSixDegrees(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
             🔗 Six Degrees
           </button>
         </div>
@@ -506,21 +508,26 @@ function renderPersonDetail(container, p, filmographyData, knownFor) {
   `;
 }
 
-function prefillSixDegrees(personId) {
+function prefillSixDegrees(personId, personName) {
   const aInput = document.getElementById('sixDegA');
-  if (!aInput.value) {
-    aInput.value = personId;
+  const bInput = document.getElementById('sixDegB');
+  if (!aInput.dataset.personId) {
+    aInput.value = personName;
+    aInput.dataset.personId = personId;
   } else {
-    document.getElementById('sixDegB').value = personId;
+    bInput.value = personName;
+    bInput.dataset.personId = personId;
   }
   showPage('six-degrees');
 }
 
 // ---- SIX DEGREES ----
 async function findSixDegrees() {
-  const a = document.getElementById('sixDegA').value;
-  const b = document.getElementById('sixDegB').value;
-  if (!a || !b) { showToast('Enter both person IDs', 'error'); return; }
+  const aInput = document.getElementById('sixDegA');
+  const bInput = document.getElementById('sixDegB');
+  const a = aInput.dataset.personId;
+  const b = bInput.dataset.personId;
+  if (!a || !b) { showToast('Select both people from the suggestions', 'error'); return; }
 
   const container = document.getElementById('sixDegreesResult');
   container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Finding connection...</p></div>`;
@@ -718,6 +725,50 @@ async function toggleWatchlist(movieId) {
 }
 
 // ---- UTILS ----
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+}
+
+function setupPersonAutocomplete(inputId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(`${inputId}-dropdown`);
+
+  const fetchSuggestions = debounce(async (query) => {
+    if (query.length < 2) { dropdown.classList.add('hidden'); return; }
+    try {
+      const people = await apiFetch(`/api/people/search?name=${encodeURIComponent(query)}&limit=8`);
+      if (!people.length) { dropdown.classList.add('hidden'); return; }
+      dropdown.innerHTML = people.map(p =>
+        `<div class="autocomplete-item" data-id="${p.id}" data-name="${p.name.replace(/"/g, '&quot;')}">
+          ${p.name}${p.birth_year ? `<div class="ac-sub">${p.birth_year}</div>` : ''}
+        </div>`
+      ).join('');
+      dropdown.classList.remove('hidden');
+      dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+        item.addEventListener('click', () => {
+          input.value = item.dataset.name;
+          input.dataset.personId = item.dataset.id;
+          dropdown.classList.add('hidden');
+        });
+      });
+    } catch (e) {
+      dropdown.classList.add('hidden');
+    }
+  }, 300);
+
+  input.addEventListener('input', () => {
+    delete input.dataset.personId;
+    fetchSuggestions(input.value.trim());
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
+  });
+}
+
 async function apiFetch(url, options = {}) {
   const defaultOpts = {
     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
