@@ -363,6 +363,9 @@ body {
   transition: all 0.2s;
 }
 .helpful-btn:hover { border-color: var(--green); color: var(--green); }
+.helpful-btn.voted { border-color: var(--gold); color: var(--gold); }
+.helpful-btn.voted:hover { border-color: var(--accent); color: var(--accent); }
+.helpful-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ---- PEOPLE ---- */
 .people-grid {

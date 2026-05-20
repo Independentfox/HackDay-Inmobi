@@ -18,6 +18,7 @@ class ReviewResponse(BaseModel):
     rating: int
     text: str
     helpful_votes: int
+    user_voted: bool = False
 
 
 class UserReviewResponse(BaseModel):
@@ -37,3 +38,4 @@ class UserReviewResponse(BaseModel):
 
 class HelpfulVote(BaseModel):
     review_id: int
+    user_id: int
