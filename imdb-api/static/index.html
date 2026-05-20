@@ -145,16 +145,17 @@
       </div>
       <div class="six-deg-form card">
         <div class="filter-row">
-          <div class="form-group">
-            <label>Person A (ID)</label>
-            <input id="sixDegA" type="number" placeholder="e.g. 1" class="filter-input" />
+          <div class="form-group autocomplete-wrapper">
+            <label>Person A</label>
+            <input id="sixDegA" type="text" placeholder="Type a name..." class="filter-input" autocomplete="off" />
+            <div id="sixDegA-dropdown" class="autocomplete-dropdown hidden"></div>
           </div>
-          <div class="form-group">
-            <label>Person B (ID)</label>
-            <input id="sixDegB" type="number" placeholder="e.g. 5" class="filter-input" />
+          <div class="form-group autocomplete-wrapper">
+            <label>Person B</label>
+            <input id="sixDegB" type="text" placeholder="Type a name..." class="filter-input" autocomplete="off" />
+            <div id="sixDegB-dropdown" class="autocomplete-dropdown hidden"></div>
           </div>
         </div>
-        <p class="hint">Tip: Visit a person's profile to get their ID</p>
         <button onclick="findSixDegrees()" class="btn btn-primary btn-lg">Find Connection</button>
       </div>
       <div id="sixDegreesResult" class="mt-4"></div>
