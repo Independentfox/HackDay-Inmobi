@@ -89,6 +89,14 @@ app.include_router(stats.router)
 app.include_router(ai.router)
 
 
+@app.get("/signin", include_in_schema=False)
+def serve_signin():
+    signin_path = os.path.join(os.path.dirname(__file__), "..", "static", "signin.html")
+    if os.path.isfile(signin_path):
+        return FileResponse(signin_path)
+    return {"message": "signin page not found"}
+
+
 @app.get("/{full_path:path}", include_in_schema=False)
 def serve_spa(full_path: str):
     ui_path = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")

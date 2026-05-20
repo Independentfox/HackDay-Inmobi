@@ -9,7 +9,7 @@ let selectedStarRating = 0;
 
 // ---- INIT ----
 document.addEventListener('DOMContentLoaded', async () => {
-  await loadUsers();
+  initSession();
   await loadHomePage();
   await navigateToPath(window.location.pathname, false);
   setupPersonAutocomplete('sixDegA');
@@ -61,24 +61,23 @@ async function navigateToPath(path, push = true) {
   }
 }
 
-async function loadUsers() {
+function initSession() {
   try {
-    const res = await fetch(`${API}/api/users/?limit=50`);
-    const users = await res.json();
-    const sel = document.getElementById('userSelect');
-    users.forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = u.id;
-      opt.textContent = u.username;
-      sel.appendChild(opt);
-    });
-    if (users.length > 0) {
-      sel.value = users[0].id;
-      setUser(users[0].id);
-    }
-  } catch (e) {
-    console.error('Failed to load users', e);
+    const stored = localStorage.getItem('cinedb_user');
+    if (!stored) { window.location.replace('/signin'); return; }
+    const user = JSON.parse(stored);
+    currentUser = user.id || 1;
+    const nameEl = document.getElementById('navUsername');
+    if (nameEl) nameEl.textContent = user.username;
+  } catch {
+    localStorage.removeItem('cinedb_user');
+    window.location.replace('/signin');
   }
+}
+
+function signOut() {
+  localStorage.removeItem('cinedb_user');
+  window.location.replace('/signin');
 }
 
 function setUser(id) {

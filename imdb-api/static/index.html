@@ -27,9 +27,11 @@
         <a href="/user">Dashboard</a>
       </div>
       <div class="nav-user">
-        <select id="userSelect" onchange="setUser(this.value)">
-          <option value="">Select User</option>
-        </select>
+        <div class="nav-user-info">
+          <span class="nav-user-avatar">👤</span>
+          <span id="navUsername" class="nav-username"></span>
+          <button class="nav-signout-btn" onclick="signOut()">Sign Out</button>
+        </div>
       </div>
     </div>
   </nav>
