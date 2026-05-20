@@ -1,11 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineDB — User Dashboard</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
 </head>
 <body>
-    hello world
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a class="logo" href="/">
+        <span class="logo-icon">🎬</span>CineDB
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/user">Dashboard</a>
+      </div>
+      <div class="nav-user">
+        <select id="userSelect" onchange="setUser(this.value)">
+          <option value="">Select User</option>
+        </select>
+      </div>
+    </div>
+  </nav>
+
+  <main id="app">
+    <div class="page active">
+      <div class="page-hero">
+        <h1>My Dashboard</h1>
+        <p>Manage your ratings, reviews, and watchlist in one place.</p>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2>Overview</h2>
+        </div>
+        <div id="dashboardSummary" class="stats-grid"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2>My Ratings</h2>
+        </div>
+        <div id="dashboardRatings" class="dashboard-grid"></div>
+        <div id="dashboardRatingsEmpty" class="empty-state hidden">
+          <div class="empty-icon">⭐</div>
+          <p>No ratings yet. Rate a movie to see it here.</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2>My Reviews</h2>
+        </div>
+        <div id="dashboardReviews" class="review-list"></div>
+        <div id="dashboardReviewsEmpty" class="empty-state hidden">
+          <div class="empty-icon">📝</div>
+          <p>No reviews yet. Share your opinion on a movie.</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2>My Watchlist</h2>
+        </div>
+        <div id="dashboardWatchlist" class="dashboard-grid"></div>
+        <div id="dashboardWatchlistEmpty" class="empty-state hidden">
+          <div class="empty-icon">📺</div>
+          <p>Your watchlist is empty. Add movies from the details page.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="dashboardModal" class="modal-overlay hidden">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <h2 id="modalTitle">Edit Rating & Review</h2>
+      <p id="modalSubtitle" class="modal-subtitle"></p>
+      <div class="rating-stars" id="dashboardStars"></div>
+      <p id="dashboardSelectedRating" class="selected-rating">Tap a star to rate</p>
+      <textarea id="dashboardReviewText" placeholder="Write your review (optional)…" rows="5"></textarea>
+      <button onclick="submitDashboardRating()" class="btn btn-primary btn-full">Save</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="/static/js/user.js"></script>
 </body>
 </html>

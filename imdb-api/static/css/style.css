@@ -499,10 +499,64 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px; margin-top: 8px;
 }
-.stat-card {
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+.review-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+.dashboard-card {
   background: var(--bg-2); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 28px 24px;
-  text-align: center;
+  border-radius: var(--radius); padding: 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.dashboard-watchlist-card {
+  min-height: 170px;
+}
+.review-list .review-card {
+  margin-bottom: 0;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid,
+  .review-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid,
+  .review-list {
+    grid-template-columns: 1fr;
+  }
+}
+.dashboard-card-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px;
+}
+.dashboard-card-title {
+  font-size: 1rem; font-weight: 700; color: var(--text);
+}
+.dashboard-card-subtitle {
+  color: var(--text-dim); font-size: 0.85rem; margin-top: 6px;
+}
+.dashboard-card-actions {
+  display: flex; flex-wrap: wrap; gap: 10px;
+}
+.dashboard-review-card .review-text {
+  color: var(--text); font-size: 0.95rem;
+}
+.dashboard-card-meta {
+  color: var(--text-dim); font-size: 0.8rem; margin-top: 8px;
+}
+.dashboard-review-actions {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;
 }
 .stat-icon { font-size: 2.5rem; margin-bottom: 12px; }
 .stat-num {

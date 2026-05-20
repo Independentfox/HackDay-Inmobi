@@ -62,6 +62,22 @@ def ready():
         )
 
 
+@app.get("/user", include_in_schema=False)
+def serve_user_dashboard():
+    user_path = os.path.join(os.path.dirname(__file__), "..", "static", "user.html")
+    if os.path.isfile(user_path):
+        return FileResponse(user_path)
+    return {"message": "User dashboard page not found."}
+
+
+@app.get("/", include_in_schema=False)
+def serve_ui():
+    ui_path = os.path.join(os.path.dirname(__file__), "..", "static", "index.html")
+    if os.path.isfile(ui_path):
+        return FileResponse(ui_path)
+    return {"message": "CineDB API is running. Visit /docs for API documentation."}
+
+
 app.include_router(users.router)
 app.include_router(movies.router)
 app.include_router(people.router)

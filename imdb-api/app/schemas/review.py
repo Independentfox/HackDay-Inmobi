@@ -20,5 +20,20 @@ class ReviewResponse(BaseModel):
     helpful_votes: int
 
 
+class UserReviewResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    movie_id: int
+    rating: int
+    text: str
+    helpful_votes: int
+    movie_title: str
+    movie_year: int
+    movie_average_rating: float
+    poster_url: Optional[str] = None
+
+
 class HelpfulVote(BaseModel):
     review_id: int
