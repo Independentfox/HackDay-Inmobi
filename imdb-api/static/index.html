@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineDB — Movie Database</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- NAV -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <a class="logo" href="#" onclick="showPage('home')">
+        <span class="logo-icon">🎬</span>CineDB
+      </a>
+      <div class="nav-links">
+        <a href="#" onclick="showPage('home')">Home</a>
+        <a href="#" onclick="showPage('top-rated')">Top Rated</a>
+        <a href="#" onclick="showPage('trending')">Trending</a>
+        <a href="#" onclick="showPage('search')">Search</a>
+        <a href="#" onclick="showPage('people')">People</a>
+        <a href="#" onclick="showPage('six-degrees')">6 Degrees</a>
+        <a href="#" onclick="showPage('ai')" class="ai-nav-link">✦ AI</a>
+        <a href="#" onclick="showPage('stats')">Stats</a>
+      </div>
+      <div class="nav-user">
+        <select id="userSelect" onchange="setUser(this.value)">
+          <option value="">Select User</option>
+        </select>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main id="app">
+    <!-- HOME PAGE -->
+    <div id="page-home" class="page active">
+      <section class="hero">
+        <div class="hero-content">
+          <h1>Discover <span class="accent">Cinema</span><br/>Like Never Before</h1>
+          <p>Ratings, reviews, cast info, Six Degrees of Separation, and more — all in one place.</p>
+          <div class="hero-search">
+            <input id="heroSearch" type="text" placeholder="Search movies or people..." onkeydown="if(event.key==='Enter') heroSearchGo()" />
+            <button onclick="heroSearchGo()">Search</button>
+          </div>
+        </div>
+      </section>
+      <section class="section">
+        <div class="section-header">
+          <h2>Trending Now</h2>
+          <a href="#" onclick="showPage('trending')" class="see-all">See All →</a>
+        </div>
+        <div id="homeTrending" class="movie-grid"></div>
+      </section>
+      <section class="section">
+        <div class="section-header">
+          <h2>Top Rated</h2>
+          <a href="#" onclick="showPage('top-rated')" class="see-all">See All →</a>
+        </div>
+        <div id="homeTopRated" class="movie-grid"></div>
+      </section>
+    </div>
+
+    <!-- SEARCH PAGE -->
+    <div id="page-search" class="page">
+      <div class="page-hero">
+        <h1>Search Movies</h1>
+      </div>
+      <div class="search-filters card">
+        <div class="filter-row">
+          <input id="filterTitle" type="text" placeholder="Movie title..." class="filter-input" />
+          <input id="filterGenre" type="text" placeholder="Genre (Action, Drama...)" class="filter-input" />
+          <input id="filterLang" type="text" placeholder="Language" class="filter-input" />
+        </div>
+        <div class="filter-row">
+          <input id="filterYearMin" type="number" placeholder="Year from" class="filter-input" min="1900" max="2030" />
+          <input id="filterYearMax" type="number" placeholder="Year to" class="filter-input" min="1900" max="2030" />
+          <input id="filterMinRating" type="number" placeholder="Min rating (1-10)" class="filter-input" min="0" max="10" step="0.1" />
+          <select id="filterCert" class="filter-input">
+            <option value="">All Certificates</option>
+            <option value="U">U</option>
+            <option value="UA">UA</option>
+            <option value="A">A</option>
+          </select>
+        </div>
+        <button onclick="doSearch()" class="btn btn-primary">Search</button>
+        <button onclick="clearSearch()" class="btn btn-ghost">Clear</button>
+      </div>
+      <div id="searchResults" class="movie-grid mt-4"></div>
+      <div id="searchEmpty" class="empty-state hidden">
+        <div class="empty-icon">🔍</div>
+        <p>No movies found. Try different filters.</p>
+      </div>
+    </div>
+
+    <!-- TOP RATED PAGE -->
+    <div id="page-top-rated" class="page">
+      <div class="page-hero">
+        <h1>Top Rated Movies</h1>
+        <p>Ranked by Bayesian weighted average (min. 10 ratings)</p>
+      </div>
+      <div id="topRatedList" class="ranked-list"></div>
+    </div>
+
+    <!-- TRENDING PAGE -->
+    <div id="page-trending" class="page">
+      <div class="page-hero">
+        <h1>Trending</h1>
+        <p>Movies generating the most buzz in the last 7 days</p>
+      </div>
+      <div id="trendingList" class="movie-grid"></div>
+    </div>
+
+    <!-- MOVIE DETAIL PAGE -->
+    <div id="page-movie-detail" class="page">
+      <div id="movieDetailContent"></div>
+    </div>
+
+    <!-- PEOPLE PAGE -->
+    <div id="page-people" class="page">
+      <div class="page-hero">
+        <h1>People</h1>
+      </div>
+      <div class="search-filters card">
+        <div class="filter-row">
+          <input id="personSearch" type="text" placeholder="Search by name..." class="filter-input" />
+          <button onclick="searchPeople()" class="btn btn-primary">Search</button>
+        </div>
+      </div>
+      <div id="peopleResults" class="people-grid mt-4"></div>
+    </div>
+
+    <!-- PERSON DETAIL PAGE -->
+    <div id="page-person-detail" class="page">
+      <div id="personDetailContent"></div>
+    </div>
+
+    <!-- SIX DEGREES PAGE -->
+    <div id="page-six-degrees" class="page">
+      <div class="page-hero">
+        <h1>Six Degrees of Separation</h1>
+        <p>Find the shortest connection between any two people in cinema</p>
+      </div>
+      <div class="six-deg-form card">
+        <div class="filter-row">
+          <div class="form-group">
+            <label>Person A (ID)</label>
+            <input id="sixDegA" type="number" placeholder="e.g. 1" class="filter-input" />
+          </div>
+          <div class="form-group">
+            <label>Person B (ID)</label>
+            <input id="sixDegB" type="number" placeholder="e.g. 5" class="filter-input" />
+          </div>
+        </div>
+        <p class="hint">Tip: Visit a person's profile to get their ID</p>
+        <button onclick="findSixDegrees()" class="btn btn-primary btn-lg">Find Connection</button>
+      </div>
+      <div id="sixDegreesResult" class="mt-4"></div>
+    </div>
+
+    <!-- STATS PAGE -->
+    <div id="page-stats" class="page">
+      <div class="page-hero">
+        <h1>Platform Statistics</h1>
+      </div>
+      <div id="statsContent" class="stats-grid"></div>
+    </div>
+
+    <!-- AI PAGE -->
+    <div id="page-ai" class="page">
+      <div class="page-hero ai-page-hero">
+        <div class="ai-hero-badge">Powered by Claude</div>
+        <h1>✦ AI Cinema Intelligence</h1>
+        <p>Natural language search, review synthesis, personalized picks, and more</p>
+      </div>
+
+      <div class="ai-tabs-nav">
+        <button id="ai-tab-btn-search" class="ai-tab-btn active" onclick="showAiTab('search')">🔍 Smart Search</button>
+        <button id="ai-tab-btn-insights" class="ai-tab-btn" onclick="showAiTab('insights')">💡 Movie Insights</button>
+        <button id="ai-tab-btn-dna" class="ai-tab-btn" onclick="showAiTab('dna')">🧬 Movie DNA</button>
+        <button id="ai-tab-btn-recommend" class="ai-tab-btn" onclick="showAiTab('recommend')">🎯 For You</button>
+      </div>
+
+      <!-- Smart Search -->
+      <div id="ai-panel-search" class="ai-panel active">
+        <div class="ai-card">
+          <h2>Ask anything about movies</h2>
+          <p class="ai-hint">Try: <em>"Hindi action movies from the 2000s with high ratings"</em> or <em>"Emotional family dramas"</em> or <em>"Telugu epics"</em></p>
+          <div class="ai-input-row">
+            <input id="aiSearchQuery" type="text" class="ai-text-input" placeholder="Describe what you want to watch..." onkeydown="if(event.key==='Enter') doAiSearch()" />
+            <button onclick="doAiSearch()" class="btn btn-ai">✦ Search</button>
+          </div>
+        </div>
+        <div id="aiSearchInterpretation" class="ai-interpretation hidden"></div>
+        <div id="aiSearchResults" class="movie-grid mt-4"></div>
+      </div>
+
+      <!-- Movie Insights -->
+      <div id="ai-panel-insights" class="ai-panel hidden">
+        <div class="ai-card">
+          <h2>Review Synthesis</h2>
+          <p class="ai-hint">Enter a movie ID to get AI-synthesized pros, cons, and consensus from all reviews</p>
+          <div class="ai-input-row">
+            <input id="aiInsightsMovieId" type="number" class="ai-text-input" placeholder="Movie ID (e.g. 1)" />
+            <button onclick="doAiInsights()" class="btn btn-ai">✦ Analyze</button>
+          </div>
+          <p class="ai-hint" style="margin-top:8px">Tip: Click any movie card, then copy its ID from the URL or use the insights button on the movie page.</p>
+        </div>
+        <div id="aiInsightsResult" class="mt-4"></div>
+      </div>
+
+      <!-- Movie DNA -->
+      <div id="ai-panel-dna" class="ai-panel hidden">
+        <div class="ai-card">
+          <h2>Movie DNA</h2>
+          <p class="ai-hint">Get the thematic fingerprint of any film — its mood, themes, and what makes it unique</p>
+          <div class="ai-input-row">
+            <input id="aiDnaMovieId" type="number" class="ai-text-input" placeholder="Movie ID (e.g. 8)" />
+            <button onclick="doAiDna()" class="btn btn-ai">✦ Analyze DNA</button>
+          </div>
+        </div>
+        <div id="aiDnaResult" class="mt-4"></div>
+      </div>
+
+      <!-- Personalized Recommendations -->
+      <div id="ai-panel-recommend" class="ai-panel hidden">
+        <div class="ai-card">
+          <h2>Personalized For You</h2>
+          <p class="ai-hint">AI analyzes your rating history to build a taste profile and recommend movies you'll love</p>
+          <button onclick="doAiRecommend()" class="btn btn-ai btn-lg">✦ Get My Recommendations</button>
+        </div>
+        <div id="aiRecommendResult" class="mt-4"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL for rating/review -->
+  <div id="ratingModal" class="modal-overlay hidden">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <h2 id="modalTitle">Rate & Review</h2>
+      <p id="modalMovieName" class="modal-subtitle"></p>
+      <div class="rating-stars" id="ratingStars"></div>
+      <p id="selectedRating" class="selected-rating">Tap a star to rate</p>
+      <textarea id="reviewText" placeholder="Write your review (optional)..." rows="4"></textarea>
+      <button onclick="submitRating()" class="btn btn-primary btn-full">Submit</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

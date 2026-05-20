@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imdb-api
+  namespace: imdb
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: imdb-api
+  template:
+    metadata:
+      labels:
+        app: imdb-api
+    spec:
+      initContainers:
+        - name: migrate
+          image: imdb-api:latest
+          imagePullPolicy: Never
+          command: ["sh", "-c", "alembic upgrade head && python seed.py"]
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@postgres-service:5432/imdb"
+      containers:
+        - name: imdb-api
+          image: imdb-api:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@postgres-service:5432/imdb"
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: ANTHROPIC_API_KEY
+                  optional: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
