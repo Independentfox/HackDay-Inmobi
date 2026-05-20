@@ -43,12 +43,19 @@ deploy:
 	echo "📦 Applying Kubernetes manifests..." && \
 	kubectl apply -f k8s/namespace.yaml && \
 	kubectl apply -f k8s/secret.yaml && \
+	kubectl apply -f k8s/ai-secret.yaml && \
 	kubectl apply -f k8s/configmap.yaml && \
 	kubectl apply -f k8s/postgres-statefulset.yaml && \
 	echo "⏳ Waiting for PostgreSQL..." && \
 	kubectl wait --for=condition=ready pod/postgres-0 -n imdb --timeout=180s && \
+	echo "🗄️  Running migrations + seed (one-shot Job)..." && \
+	kubectl delete job/db-init -n imdb --ignore-not-found && \
+	kubectl apply -f k8s/db-init-job.yaml && \
+	kubectl wait --for=condition=complete job/db-init -n imdb --timeout=300s && \
+	echo "📦 Applying API resources..." && \
 	kubectl apply -f k8s/api-deployment.yaml && \
 	kubectl apply -f k8s/api-service.yaml && \
+	kubectl apply -f k8s/api-pdb.yaml && \
 	echo "⏳ Waiting for API pods..." && \
 	kubectl wait --for=condition=ready pod -l app=imdb-api -n imdb --timeout=180s && \
 	echo "" && \

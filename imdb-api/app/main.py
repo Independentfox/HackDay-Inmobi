@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 import os
+import time
 
 from app.routers import movies, people, credits, users, ratings, reviews, watchlist, stats, ai
 
@@ -48,18 +49,30 @@ def health():
 
 @app.get("/ready", tags=["Health"])
 def ready():
+    # Cache a successful DB check for 5s so the readiness probe doesn't
+    # hammer Postgres (default probe interval is 10s × N pods). Failures
+    # are never cached — we want recovery to be detected on the next probe.
+    now = time.monotonic()
+    if _ready_cache["ok"] and (now - _ready_cache["ts"] < 5):
+        return {"status": "ready"}
     from app.database import engine
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
+        _ready_cache["ok"] = True
+        _ready_cache["ts"] = now
         return {"status": "ready"}
     except Exception:
+        _ready_cache["ok"] = False
         from fastapi import Response
         return Response(
             content='{"status": "not ready"}',
             status_code=503,
             media_type="application/json"
         )
+
+
+_ready_cache = {"ts": 0.0, "ok": False}
 
 
 @app.get("/user", include_in_schema=False)

@@ -13,6 +13,7 @@ from app.database import engine, SessionLocal, Base
 from app.models import Movie, Person, Credit, User, Rating, Review
 from app.models.watchlist import WatchlistItem
 from app.services.auth import hash_password
+from sqlalchemy.exc import IntegrityError
 
 
 def seed():
@@ -35,10 +36,20 @@ def seed():
         users = []
         seed_password_hash = hash_password("password")
         for username in usernames:
-            u = User(username=username, password_hash=seed_password_hash)
-            db.add(u)
-            users.append(u)
-        db.flush()
+            # Per-user IntegrityError guard makes seed safe to run concurrently
+            # (defense-in-depth — the k8s Job runs it once, but tests and ad-hoc
+            # invocations might race). The user-by-user transaction keeps the
+            # bulk of the seed running even if a few rows are already there.
+            try:
+                u = User(username=username, password_hash=seed_password_hash)
+                db.add(u)
+                db.flush()
+                users.append(u)
+            except IntegrityError:
+                db.rollback()
+                existing = db.query(User).filter(User.username == username).first()
+                if existing:
+                    users.append(existing)
 
         # --- People ---
         # idx: Name (birth_year)

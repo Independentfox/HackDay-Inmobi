@@ -13,29 +13,43 @@ spec:
       labels:
         app: imdb-api
     spec:
-      initContainers:
-        - name: migrate
-          image: imdb-api:latest
-          imagePullPolicy: Never
-          command: ["sh", "-c", "alembic upgrade head && python seed.py"]
-          env:
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgres@postgres-service:5432/imdb"
+      terminationGracePeriodSeconds: 30
+      affinity:
+        podAntiAffinity:
+          # Soft preference so Minikube's single node doesn't block scheduling.
+          # On a multi-node cluster the API replicas will spread automatically.
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app: imdb-api
       containers:
         - name: imdb-api
           image: imdb-api:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: db-secret
+            - configMapRef:
+                name: app-config
           env:
-            - name: DATABASE_URL
-              value: "postgresql://postgres:postgres@postgres-service:5432/imdb"
             - name: ANTHROPIC_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: db-secret
+                  name: ai-secret
                   key: ANTHROPIC_API_KEY
                   optional: true
+          lifecycle:
+            preStop:
+              # Give the Service ~10s to drop this pod from rotation before
+              # uvicorn starts shutting down. Combined with the 30s grace period,
+              # in-flight requests have time to finish cleanly.
+              exec:
+                command: ["sh", "-c", "sleep 10"]
           livenessProbe:
             httpGet:
               path: /health
