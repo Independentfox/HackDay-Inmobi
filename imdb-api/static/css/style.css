@@ -571,9 +571,10 @@ body {
 .star-btn {
   font-size: 2rem; cursor: pointer;
   background: none; border: none;
-  transition: transform 0.1s; filter: grayscale(1);
+  color: var(--text-muted);
+  transition: color 0.1s, transform 0.1s;
 }
-.star-btn.active { filter: none; transform: scale(1.1); }
+.star-btn.active { color: var(--gold); transform: scale(1.1); }
 .selected-rating {
   color: var(--text-dim); font-size: 0.875rem; margin-bottom: 16px;
 }
