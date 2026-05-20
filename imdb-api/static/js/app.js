@@ -148,17 +148,19 @@ async function openMovie(movieId, updateHash = true) {
   container.innerHTML = `<div class="loading"><div class="spinner"></div><p>Loading...</p></div>`;
 
   try {
-    const [detail, similar] = await Promise.all([
+    const [detail, similar, watchlist] = await Promise.all([
       apiFetch(`/api/movies/${movieId}`),
-      apiFetch(`/api/movies/${movieId}/similar`).catch(() => [])
+      apiFetch(`/api/movies/${movieId}/similar`).catch(() => []),
+      currentUser ? apiFetch(`/api/watchlist/${currentUser}`).catch(() => []) : Promise.resolve([])
     ]);
-    renderMovieDetail(container, detail, similar);
+    const inWatchlist = watchlist.some(item => item.movie_id === movieId);
+    renderMovieDetail(container, detail, similar, inWatchlist);
   } catch (e) {
     container.innerHTML = `<div class="loading">Failed to load movie details.</div>`;
   }
 }
 
-function renderMovieDetail(container, m, similar) {
+function renderMovieDetail(container, m, similar, inWatchlist = false) {
   const genres = (m.genres || []).map(g => `<span class="genre-tag">${g}</span>`).join('');
   const rating = m.average_rating ? m.average_rating.toFixed(1) : '—';
   const poster = m.poster_url
@@ -242,7 +244,7 @@ function renderMovieDetail(container, m, similar) {
         <p class="detail-plot">${m.plot_summary || 'No plot summary available.'}</p>
         <div class="detail-actions">
           <button class="btn btn-primary" onclick="openRatingModal(${m.id}, '${m.title.replace(/'/g, "\\'")}')">★ Rate This</button>
-          <button class="btn btn-ghost" id="watchlistBtn-${m.id}" onclick="toggleWatchlist(${m.id})">+ Watchlist</button>
+          <button class="btn btn-ghost${inWatchlist ? ' in-watchlist' : ''}" id="watchlistBtn-${m.id}" onclick="toggleWatchlist(${m.id})">${inWatchlist ? '✓ In Watchlist' : '+ Watchlist'}</button>
           <button class="btn btn-ai" onclick="openMovieAiInsights(${m.id})">✦ AI Insights</button>
           <button class="btn btn-ai btn-ai-outline" onclick="openMovieAiDna(${m.id})">🧬 DNA</button>
         </div>
@@ -663,20 +665,30 @@ async function voteHelpful(reviewId) {
 // ---- WATCHLIST ----
 async function toggleWatchlist(movieId) {
   if (!currentUser) { showToast('Please select a user first', 'error'); return; }
+  const btn = document.getElementById(`watchlistBtn-${movieId}`);
+  const isInWatchlist = btn && btn.classList.contains('in-watchlist');
+
   try {
-    await apiFetch('/api/watchlist/', {
-      method: 'POST',
-      body: JSON.stringify({ user_id: currentUser, movie_id: movieId })
-    });
-    showToast('Added to Watchlist ✓', 'success');
-    const btn = document.getElementById(`watchlistBtn-${movieId}`);
-    if (btn) { btn.textContent = '✓ In Watchlist'; btn.classList.add('btn-ghost'); }
-  } catch (e) {
-    if (e.status === 409) {
-      showToast('Already in watchlist', 'error');
+    if (isInWatchlist) {
+      await apiFetch(`/api/watchlist/${currentUser}/${movieId}`, { method: 'DELETE' });
+      showToast('This movie has been removed from the watchlist', '');
+      if (btn) {
+        btn.textContent = '+ Watchlist';
+        btn.classList.remove('in-watchlist');
+      }
     } else {
-      showToast('Failed', 'error');
+      await apiFetch('/api/watchlist/', {
+        method: 'POST',
+        body: JSON.stringify({ user_id: currentUser, movie_id: movieId })
+      });
+      showToast('This movie has been added to the watchlist', 'success');
+      if (btn) {
+        btn.textContent = '✓ In Watchlist';
+        btn.classList.add('in-watchlist');
+      }
     }
+  } catch (e) {
+    showToast('Failed', 'error');
   }
 }
 
@@ -691,6 +703,7 @@ async function apiFetch(url, options = {}) {
     err.status = res.status;
     throw err;
   }
+  if (res.status === 204) return null;
   return res.json();
 }
 
