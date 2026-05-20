@@ -31,6 +31,14 @@ document.addEventListener('click', (e) => {
   if (!a) return;
   const href = a.getAttribute('href');
   if (!href || href.startsWith('http') || href.startsWith('mailto')) return;
+  // If the SPA contains a matching `#page-<segment>` element, handle
+  // the navigation client-side. Otherwise allow the browser to perform
+  // a full navigation so server-served pages (e.g. /user) load properly.
+  const segment = href.replace(/^\//, '').split('/')[0] || 'home';
+  if (!document.getElementById(`page-${segment}`)) {
+    // let the browser navigate to server route (no preventDefault)
+    return;
+  }
   e.preventDefault();
   navigateToPath(href, true);
 });
