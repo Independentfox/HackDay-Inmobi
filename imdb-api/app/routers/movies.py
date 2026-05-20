@@ -62,9 +62,7 @@ def search_movies(
     if title:
         query = query.filter(Movie.title.ilike(f"%{title}%"))
     if genre:
-        query = query.filter(
-            func.lower(func.array_to_string(Movie.genres, ',')).contains(genre.lower())
-        )
+        query = query.filter(Movie.genres.any(genre))
     if year_min:
         query = query.filter(Movie.release_year >= year_min)
     if year_max:
