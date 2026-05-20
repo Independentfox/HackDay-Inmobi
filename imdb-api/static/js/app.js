@@ -75,6 +75,9 @@ async function loadUsers() {
 
 function setUser(id) {
   currentUser = id ? parseInt(id) : null;
+  if (document.getElementById('page-user-dashboard')?.classList.contains('active')) {
+    loadUserDashboard();
+  }
 }
 
 // ---- PAGE ROUTING ----
@@ -88,6 +91,7 @@ function _switchPage(name) {
   if (name === 'trending') loadTrending();
   if (name === 'stats') loadStats();
   if (name === 'people') searchPeople();
+  if (name === 'user-dashboard') loadUserDashboard();
 }
 
 function showPage(name) {
@@ -608,13 +612,14 @@ async function loadStats() {
 }
 
 // ---- RATING / REVIEW MODAL ----
-function openRatingModal(movieId, movieTitle) {
+function openRatingModal(movieId, movieTitle, initialRating = 0, initialText = '') {
   if (!currentUser) { showToast('Please select a user first', 'error'); return; }
   currentMovieId = movieId;
   document.getElementById('modalMovieName').textContent = movieTitle;
-  document.getElementById('reviewText').value = '';
-  selectedStarRating = 0;
-  renderStars(0);
+  document.getElementById('reviewText').value = initialText;
+  selectedStarRating = initialRating || 0;
+  document.getElementById('selectedRating').textContent = selectedStarRating ? `${selectedStarRating}/10 — ${ratingLabel(selectedStarRating)}` : 'Tap a star to rate';
+  renderStars(selectedStarRating);
   document.getElementById('ratingModal').classList.remove('hidden');
 }
 
