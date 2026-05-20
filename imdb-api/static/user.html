@@ -1,93 +1,242 @@
-<!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CineDB — User Dashboard</title>
-  <link rel="stylesheet" href="/static/css/style.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
-</head>
-<body>
-  <nav class="navbar">
-    <div class="nav-inner">
-      <a class="logo" href="/">
-        <span class="logo-icon">🎬</span>CineDB
-      </a>
-      <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/user">Dashboard</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CineDB — User Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;7
+  00&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Inter', system-ui, sans-serif;
+        background: #05050b;
+        color: #e8eaf6;
+      }
+      .watchlist-add-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-top: 12px;
+      }
+      .watchlist-add-section .filter-input {
+        flex: 1;
+        min-width: 180px;
+      }
+      .modal {
+        max-width: 600px;
+        width: min(96vw, 600px);
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+        padding: 24px;
+      }
+      .modal .modal-content {
+        display: grid;
+        gap: 18px;
+        max-width: 560px;
+      }
+      .modal h2 {
+        margin: 0;
+        font-size: 1.4rem;
+        letter-spacing: -0.02em;
+      }
+      .modal-subtitle {
+        color: rgba(232, 234, 246, 0.72);
+        margin: 0;
+        font-size: 0.95rem;
+      }
+      .modal .modal-form {
+        display: grid;
+        gap: 16px;
+      }
+      .modal .form-group {
+        display: grid;
+        gap: 8px;
+      }
+      .modal label {
+        color: rgba(232, 234, 246, 0.72);
+        font-size: 0.88rem;
+        font-weight: 600;
+      }
+      .modal .form-control {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        background: rgba(255, 255, 255, 0.04);
+        color: #f8fafc;
+        outline: none;
+        transition: border-color 0.2s ease, background 0.2s ease;
+      }
+      .modal .form-control:focus {
+        border-color: rgba(245, 197, 24, 0.55);
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .modal textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+      .modal button.btn-full {
+        padding: 12px 18px;
+      }
+      .modal-close {
+        color: rgba(232, 234, 246, 0.62);
+        transition: color 0.2s ease;
+      }
+      .modal-close:hover {
+        color: #f8fafc;
+      }
+      .modal-overlay {
+        padding: 32px 16px;
+        overflow-y: auto;
+      }
+      .form-grid { display: none; }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-inner">
+        <a class="logo" href="/">
+          <span class="logo-icon">🎬</span>CineDB
+        </a>
+        <div class="nav-links">
+          <a href="/">Home</a>
+          <a href="/user">Dashboard</a>
+        </div>
+        <div class="nav-user">
+          <select id="userSelect" onchange="setUser(this.value)">
+            <option value="">Select User</option>
+          </select>
+        </div>
       </div>
-      <div class="nav-user">
-        <select id="userSelect" onchange="setUser(this.value)">
-          <option value="">Select User</option>
-        </select>
+    </nav>
+
+    <main id="app">
+      <div class="page active">
+        <div class="page-hero">
+          <h1>My Dashboard</h1>
+          <p>Manage your ratings, reviews, and watchlist in one place.</p>
+          <button onclick="openAddMovieModal()" class="btn btn-primary" 
+  style="margin-top: 15px;">Add New Movie</button>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2>Overview</h2>
+          </div>
+          <div id="dashboardSummary" class="stats-grid"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2>My Ratings</h2>
+          </div>
+          <div id="dashboardRatings" class="dashboard-grid"></div>
+          <div id="dashboardRatingsEmpty" class="empty-state hidden">
+            <div class="empty-icon">⭐</div>
+            <p>No ratings yet. Rate a movie to see it here.</p>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2>My Reviews</h2>
+          </div>
+          <div id="dashboardReviews" class="review-list"></div>
+          <div id="dashboardReviewsEmpty" class="empty-state hidden">
+            <div class="empty-icon">📝</div>
+            <p>No reviews yet. Share your opinion on a movie.</p>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-header">
+            <h2>My Watchlist</h2>
+            <div class="watchlist-add-section">
+              <input type="number" id="addWatchlistMovieId" placeholder="Enter Movie 
+  ID" class="filter-input"/>
+              <button onclick="addMovieToWatchlist()" class="btn btn-primary">Add to
+  Watchlist</button>
+            </div>
+          </div>
+          <div id="dashboardWatchlist" class="dashboard-grid"></div>
+          <div id="dashboardWatchlistEmpty" class="empty-state hidden">
+            <div class="empty-icon">📺</div>
+            <p>Your watchlist is empty. Add movies from the details page.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div id="addMovieModal" class="modal-overlay hidden">
+      <div class="modal">
+        <button class="modal-close" onclick="closeAddMovieModal()">✕</button>
+        <div class="modal-content">
+          <div>
+            <h2>Add New Movie</h2>
+            <p class="modal-subtitle">Quickly add a movie entry with the key details.</p>
+          </div>
+          <div class="modal-form">
+            <div class="form-group">
+              <label for="newMovieTitle">Title</label>
+              <input type="text" id="newMovieTitle" class="form-control" placeholder="Movie Title" />
+            </div>
+            <div class="form-group">
+              <label for="newMovieYear">Release Year</label>
+              <input type="number" id="newMovieYear" class="form-control" placeholder="e.g., 2023" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="newMovieGenres">Genres</label>
+              <input type="text" id="newMovieGenres" class="form-control" placeholder="Action, Drama" />
+            </div>
+            <div class="form-group">
+              <label for="newMovieRuntime">Runtime Minutes</label>
+              <input type="number" id="newMovieRuntime" class="form-control" placeholder="e.g., 120" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="newMovieLanguage">Language</label>
+              <input type="text" id="newMovieLanguage" class="form-control" value="English" />
+            </div>
+            <div class="form-group">
+              <label for="newMovieCertificate">Certificate</label>
+              <select id="newMovieCertificate" class="form-control">
+                <option value="U">U</option>
+                <option value="UA">UA</option>
+                <option value="A">A</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="newMoviePoster">Poster URL</label>
+              <input type="text" id="newMoviePoster" class="form-control" placeholder="http://example.com/poster.jpg" />
+            </div>
+            <div class="form-group">
+              <label for="newMoviePlot">Plot Summary</label>
+              <textarea id="newMoviePlot" class="form-control" placeholder="Brief summary of the plot..." rows="3"></textarea>
+            </div>
+          </div>
+          <button onclick="submitNewMovie()" class="btn btn-primary btn-full">Add Movie</button>
+        </div>
       </div>
     </div>
-  </nav>
 
-  <main id="app">
-    <div class="page active">
-      <div class="page-hero">
-        <h1>My Dashboard</h1>
-        <p>Manage your ratings, reviews, and watchlist in one place.</p>
-      </div>
-
-      <div class="section">
-        <div class="section-header">
-          <h2>Overview</h2>
-        </div>
-        <div id="dashboardSummary" class="stats-grid"></div>
-      </div>
-
-      <div class="section">
-        <div class="section-header">
-          <h2>My Ratings</h2>
-        </div>
-        <div id="dashboardRatings" class="dashboard-grid"></div>
-        <div id="dashboardRatingsEmpty" class="empty-state hidden">
-          <div class="empty-icon">⭐</div>
-          <p>No ratings yet. Rate a movie to see it here.</p>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-header">
-          <h2>My Reviews</h2>
-        </div>
-        <div id="dashboardReviews" class="review-list"></div>
-        <div id="dashboardReviewsEmpty" class="empty-state hidden">
-          <div class="empty-icon">📝</div>
-          <p>No reviews yet. Share your opinion on a movie.</p>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-header">
-          <h2>My Watchlist</h2>
-        </div>
-        <div id="dashboardWatchlist" class="dashboard-grid"></div>
-        <div id="dashboardWatchlistEmpty" class="empty-state hidden">
-          <div class="empty-icon">📺</div>
-          <p>Your watchlist is empty. Add movies from the details page.</p>
-        </div>
+    <div id="dashboardModal" class="modal-overlay hidden">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <h2 id="modalTitle">Edit Rating & Review</h2>
+        <p id="modalSubtitle" class="modal-subtitle"></p>
+        <div class="rating-stars" id="dashboardStars"></div>
+        <p id="dashboardSelectedRating" class="selected-rating">Tap a star to
+  rate</p>
+        <textarea id="dashboardReviewText" placeholder="Write your review 
+  (optional)…" rows="5"></textarea>
+        <button onclick="submitDashboardRating()" class="btn btn-primary 
+  btn-full">Save</button>
       </div>
     </div>
-  </main>
 
-  <div id="dashboardModal" class="modal-overlay hidden">
-    <div class="modal">
-      <button class="modal-close" onclick="closeModal()">✕</button>
-      <h2 id="modalTitle">Edit Rating & Review</h2>
-      <p id="modalSubtitle" class="modal-subtitle"></p>
-      <div class="rating-stars" id="dashboardStars"></div>
-      <p id="dashboardSelectedRating" class="selected-rating">Tap a star to rate</p>
-      <textarea id="dashboardReviewText" placeholder="Write your review (optional)…" rows="5"></textarea>
-      <button onclick="submitDashboardRating()" class="btn btn-primary btn-full">Save</button>
-    </div>
-  </div>
-
-  <div id="toast" class="toast hidden"></div>
-  <script src="/static/js/user.js"></script>
-</body>
-</html>
+    <div id="toast" class="toast hidden"></div>
+    <script src="/static/js/user.js"></script>
+  </body>
+  </html>
