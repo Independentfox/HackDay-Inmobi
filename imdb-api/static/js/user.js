@@ -329,6 +329,173 @@ async function addMovieToWatchlist() {
     }
 }
 
+// ---- ADD PERSON ----
+function openAddPersonModal() {
+  document.getElementById('addPersonModal').classList.remove('hidden');
+  document.getElementById('newPersonName').value = '';
+  document.getElementById('newPersonBirthYear').value = '';
+  document.getElementById('newPersonPhoto').value = '';
+  document.getElementById('newPersonBio').value = '';
+}
+
+function closeAddPersonModal() {
+  document.getElementById('addPersonModal').classList.add('hidden');
+}
+
+async function submitNewPerson() {
+  const name = document.getElementById('newPersonName').value.trim();
+  const birth_year_raw = document.getElementById('newPersonBirthYear').value;
+  const birth_year = birth_year_raw ? parseInt(birth_year_raw, 10) : null;
+  const photo_url = document.getElementById('newPersonPhoto').value.trim() || null;
+  const bio = document.getElementById('newPersonBio').value.trim() || null;
+
+  if (!name) {
+    showToast('Name is required.', 'error');
+    return;
+  }
+  try {
+    const res = await apiFetch('/api/people/', {
+      method: 'POST',
+      body: JSON.stringify({ name, birth_year, bio, photo_url }),
+    });
+    showToast(`Person "${res.name}" added! (ID: ${res.id})`, 'success');
+    closeAddPersonModal();
+  } catch {
+    showToast('Failed to add person.', 'error');
+  }
+}
+
+// ---- ADD CREDIT ----
+let selectedCreditPersonId = null;
+let selectedCreditMovieId = null;
+let creditAutocompletesReady = false;
+
+function openAddCreditModal() {
+  document.getElementById('addCreditModal').classList.remove('hidden');
+  document.getElementById('creditPersonInput').value = '';
+  document.getElementById('creditMovieInput').value = '';
+  document.getElementById('creditRoleType').value = 'actor';
+  document.getElementById('creditCharacterName').value = '';
+  document.getElementById('creditCharacterNameGroup').style.display = '';
+  document.getElementById('creditPersonDropdown').classList.add('hidden');
+  document.getElementById('creditMovieDropdown').classList.add('hidden');
+  selectedCreditPersonId = null;
+  selectedCreditMovieId = null;
+  if (!creditAutocompletesReady) {
+    setupCreditAutocompletes();
+    creditAutocompletesReady = true;
+  }
+}
+
+function closeAddCreditModal() {
+  document.getElementById('addCreditModal').classList.add('hidden');
+}
+
+function toggleCreditCharacterName() {
+  const role = document.getElementById('creditRoleType').value;
+  document.getElementById('creditCharacterNameGroup').style.display = role === 'actor' ? '' : 'none';
+}
+
+function setupCreditAutocompletes() {
+  const personInput = document.getElementById('creditPersonInput');
+  const personDropdown = document.getElementById('creditPersonDropdown');
+  const movieInput = document.getElementById('creditMovieInput');
+  const movieDropdown = document.getElementById('creditMovieDropdown');
+
+  let personTimer, movieTimer;
+
+  personInput.addEventListener('input', () => {
+    selectedCreditPersonId = null;
+    clearTimeout(personTimer);
+    const q = personInput.value.trim();
+    if (q.length < 2) { personDropdown.classList.add('hidden'); return; }
+    personTimer = setTimeout(async () => {
+      try {
+        const people = await apiFetch(`/api/people/search?name=${encodeURIComponent(q)}&limit=8`);
+        if (!people.length) { personDropdown.classList.add('hidden'); return; }
+        personDropdown.innerHTML = people.map(p =>
+          `<div class="autocomplete-item" onclick="selectCreditPerson(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
+            <span>${p.name}</span>
+            ${p.birth_year ? `<span class="ac-sub">${p.birth_year}</span>` : ''}
+          </div>`
+        ).join('');
+        personDropdown.classList.remove('hidden');
+      } catch { personDropdown.classList.add('hidden'); }
+    }, 250);
+  });
+
+  movieInput.addEventListener('input', () => {
+    selectedCreditMovieId = null;
+    clearTimeout(movieTimer);
+    const q = movieInput.value.trim();
+    if (q.length < 2) { movieDropdown.classList.add('hidden'); return; }
+    movieTimer = setTimeout(async () => {
+      try {
+        const movies = await apiFetch(`/api/movies/search?title=${encodeURIComponent(q)}&limit=8`);
+        if (!movies.length) { movieDropdown.classList.add('hidden'); return; }
+        movieDropdown.innerHTML = movies.map(m =>
+          `<div class="autocomplete-item" onclick="selectCreditMovie(${m.id}, '${m.title.replace(/'/g, "\\'")}')">
+            <span>${m.title}</span>
+            <span class="ac-sub">${m.release_year}</span>
+          </div>`
+        ).join('');
+        movieDropdown.classList.remove('hidden');
+      } catch { movieDropdown.classList.add('hidden'); }
+    }, 250);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!personInput.contains(e.target) && !personDropdown.contains(e.target))
+      personDropdown.classList.add('hidden');
+    if (!movieInput.contains(e.target) && !movieDropdown.contains(e.target))
+      movieDropdown.classList.add('hidden');
+  });
+}
+
+function selectCreditPerson(id, name) {
+  selectedCreditPersonId = id;
+  document.getElementById('creditPersonInput').value = name;
+  document.getElementById('creditPersonDropdown').classList.add('hidden');
+}
+
+function selectCreditMovie(id, title) {
+  selectedCreditMovieId = id;
+  document.getElementById('creditMovieInput').value = title;
+  document.getElementById('creditMovieDropdown').classList.add('hidden');
+}
+
+async function submitNewCredit() {
+  const role_type = document.getElementById('creditRoleType').value;
+  const character_name = document.getElementById('creditCharacterName').value.trim() || null;
+
+  if (!selectedCreditPersonId) {
+    showToast('Please select a person from the suggestions.', 'error');
+    return;
+  }
+  if (!selectedCreditMovieId) {
+    showToast('Please select a movie from the suggestions.', 'error');
+    return;
+  }
+  if (role_type === 'actor' && !character_name) {
+    showToast('Character name is required for actors.', 'error');
+    return;
+  }
+  try {
+    await apiFetch('/api/credits/', {
+      method: 'POST',
+      body: JSON.stringify({ person_id: selectedCreditPersonId, movie_id: selectedCreditMovieId, role_type, character_name }),
+    });
+    showToast('Credit added successfully!', 'success');
+    closeAddCreditModal();
+  } catch (error) {
+    if (error.status === 409) {
+      showToast('This person already has this role in this movie.', 'error');
+    } else {
+      showToast('Failed to add credit.', 'error');
+    }
+  }
+}
+
 function openAddMovieModal() {
     document.getElementById('addMovieModal').classList.remove('hidden');
     // Clear form fields

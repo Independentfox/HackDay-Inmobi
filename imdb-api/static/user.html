@@ -134,7 +134,11 @@
         <div class="page-hero">
           <h1>My Dashboard</h1>
           <p>Manage your ratings, reviews, and watchlist in one place.</p>
-          <button onclick="openAddMovieModal()" class="btn btn-primary" style="margin-top: 15px;">Add New Movie</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:15px;">
+            <button onclick="openAddMovieModal()" class="btn btn-primary">Add New Movie</button>
+            <button onclick="openAddPersonModal()" class="btn btn-primary">Add Person</button>
+            <button onclick="openAddCreditModal()" class="btn btn-primary">Add Credit</button>
+          </div>
         </div>
 
         <div class="section">
@@ -230,6 +234,78 @@
             </div>
           </div>
           <button onclick="submitNewMovie()" class="btn btn-primary btn-full">Add Movie</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="addPersonModal" class="modal-overlay hidden">
+      <div class="modal">
+        <button class="modal-close" onclick="closeAddPersonModal()">✕</button>
+        <div class="modal-content">
+          <div>
+            <h2>Add New Person</h2>
+            <p class="modal-subtitle">Add an actor, director, or crew member to the database.</p>
+          </div>
+          <div class="modal-form">
+            <div class="form-group">
+              <label for="newPersonName">Name</label>
+              <input type="text" id="newPersonName" class="form-control" placeholder="Full name" />
+            </div>
+            <div class="form-group">
+              <label for="newPersonBirthYear">Birth Year</label>
+              <input type="number" id="newPersonBirthYear" class="form-control" placeholder="e.g., 1975" min="1900" max="2025" />
+            </div>
+            <div class="form-group">
+              <label for="newPersonPhoto">Photo URL</label>
+              <input type="text" id="newPersonPhoto" class="form-control" placeholder="https://example.com/photo.jpg" />
+            </div>
+            <div class="form-group">
+              <label for="newPersonBio">Bio</label>
+              <textarea id="newPersonBio" class="form-control" placeholder="Short biography..." rows="3"></textarea>
+            </div>
+          </div>
+          <button onclick="submitNewPerson()" class="btn btn-primary btn-full">Add Person</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="addCreditModal" class="modal-overlay hidden">
+      <div class="modal">
+        <button class="modal-close" onclick="closeAddCreditModal()">✕</button>
+        <div class="modal-content">
+          <div>
+            <h2>Add Credit</h2>
+            <p class="modal-subtitle">Link a person to a movie with their role.</p>
+          </div>
+          <div class="modal-form">
+            <div class="form-group">
+              <label>Person</label>
+              <div class="autocomplete-wrapper" style="position:relative">
+                <input type="text" id="creditPersonInput" class="form-control" placeholder="Search by name…" autocomplete="off" />
+                <div id="creditPersonDropdown" class="autocomplete-dropdown hidden"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Movie</label>
+              <div class="autocomplete-wrapper" style="position:relative">
+                <input type="text" id="creditMovieInput" class="form-control" placeholder="Search by title…" autocomplete="off" />
+                <div id="creditMovieDropdown" class="autocomplete-dropdown hidden"></div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="creditRoleType">Role</label>
+              <select id="creditRoleType" class="form-control" onchange="toggleCreditCharacterName()">
+                <option value="actor">Actor</option>
+                <option value="director">Director</option>
+                <option value="music_director">Music Director</option>
+              </select>
+            </div>
+            <div class="form-group" id="creditCharacterNameGroup">
+              <label for="creditCharacterName">Character Name</label>
+              <input type="text" id="creditCharacterName" class="form-control" placeholder="Character name in the movie" />
+            </div>
+          </div>
+          <button onclick="submitNewCredit()" class="btn btn-primary btn-full">Add Credit</button>
         </div>
       </div>
     </div>

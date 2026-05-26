@@ -5,5 +5,6 @@ from app.models.user import User
 from app.models.rating import Rating
 from app.models.review import Review, ReviewHelpfulVote
 from app.models.watchlist import WatchlistItem
+from app.models.global_stats import GlobalStats
 
-__all__ = ["Movie", "Person", "Credit", "User", "Rating", "Review", "ReviewHelpfulVote", "WatchlistItem"]
+__all__ = ["Movie", "Person", "Credit", "User", "Rating", "Review", "ReviewHelpfulVote", "WatchlistItem", "GlobalStats"]

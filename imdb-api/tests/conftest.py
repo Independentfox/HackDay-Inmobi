@@ -67,8 +67,14 @@ def clean_tables():
         from app.models.user import User
         from app.models.movie import Movie
         from app.models.person import Person
+        from app.models.global_stats import GlobalStats
         for model in [WatchlistItem, Review, Rating, Credit, User, Movie, Person]:
             db.query(model).delete()
+        # Reset running totals so each test starts from a clean slate
+        stats = db.get(GlobalStats, 1)
+        if stats:
+            stats.total_rating_sum = 0.0
+            stats.total_rating_count = 0
         db.commit()
     except Exception:
         db.rollback()

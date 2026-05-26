@@ -10,7 +10,7 @@ from app.schemas.movie import (
     MovieCreate, MovieUpdate, MovieResponse, MovieDetail,
     CreditInMovie, RatingDistribution, ReviewInMovie, TopRatedMovie, SimilarMovie
 )
-from app.services.bayesian import calculate_bayesian_rating, get_global_mean, MINIMUM_VOTES
+from app.services.bayesian import get_global_mean, MINIMUM_VOTES
 
 router = APIRouter(prefix="/api/movies", tags=["Movies"])
 

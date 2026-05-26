@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from app.database import engine, SessionLocal, Base
 from app.models import Movie, Person, Credit, User, Rating, Review
 from app.models.watchlist import WatchlistItem
+from app.models.global_stats import GlobalStats
 from app.services.auth import hash_password
 from sqlalchemy.exc import IntegrityError
 
@@ -414,6 +415,16 @@ def seed():
                     helpful_votes=random.randint(0, 100)
                 )
                 db.add(rev)
+
+        # Sync GlobalStats from the seeded movie data (seed bypasses the router)
+        total_sum = sum(m.rating_sum for m in movies)
+        total_count = sum(m.rating_count for m in movies)
+        stats = db.get(GlobalStats, 1)
+        if stats:
+            stats.total_rating_sum = total_sum
+            stats.total_rating_count = total_count
+        else:
+            db.add(GlobalStats(id=1, total_rating_sum=total_sum, total_rating_count=total_count))
 
         # --- Sample Watchlist ---
         watchlist_pairs = [(0, 0), (0, 7), (0, 8), (1, 2), (1, 15), (2, 9)]
